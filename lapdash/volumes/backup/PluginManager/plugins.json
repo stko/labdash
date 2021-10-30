@@ -1,0 +1,31 @@
+{
+    "plugins": {
+        "channels_satip": {
+            "active": true
+        },
+        "chromecast": {
+            "active": true
+        },
+        "epahandler": {
+            "active": false
+        },
+        "kodi": {
+            "active": true
+        },
+        "mediathek_ard": {
+            "active": true
+        },
+        "playerhandler": {
+            "active": true
+        },
+        "record_hd": {
+            "active": true
+        },
+        "satepg": {
+            "active": true
+        },
+        "uihandler": {
+            "active": true
+        }
+    }
+}
