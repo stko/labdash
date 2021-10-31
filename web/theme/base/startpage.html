@@ -117,7 +117,7 @@ your selection will be saved in the browser)
 		function constructVisualizer(row,obj){
 				row.classList.add("OOBD");
 				row.setAttribute("oobd:fc",obj.name);
-				row.setAttribute("oobd:value",decodeURIComponent(escape(atob(obj.value))));
+				row.setAttribute("oobd:value",obj.value);
 				row.setAttribute("draggable","true");
 				row.setAttribute("oobd:constructor",JSON.stringify(obj));
 				row.addEventListener('dragstart', handleDragStart, false);
@@ -137,12 +137,12 @@ your selection will be saved in the browser)
 				cell1.classList.add("name");
 				cell2.classList.add("value");
 				// Add some text to the new cells:
-				cell1.innerHTML = decodeURIComponent(escape(atob(obj.tooltip)));
+				cell1.innerHTML = obj.tooltip;
 				//let see, if the visualizer is a graphic element
 				if(typeof obj.opts == 'undefined'){
 					//the simple way
 					row.setAttribute("oobd:click","yes");
-					cell2.innerHTML = decodeURIComponent(escape(atob(obj.value)));
+					cell2.innerHTML = obj.value;
 					row.oodbupdate = function(input) {
 						this.getElementsByClassName("value")[0].innerHTML = input.value;
 					};
@@ -157,7 +157,7 @@ your selection will be saved in the browser)
 							feld.setAttribute("type","text"); 
 						}
 						feld.setAttribute("size","30"); 
-						feld.value=decodeURIComponent(escape(atob(obj.value)));
+						feld.value=obj.value;
 						if(typeof obj.opts.regex != 'undefined'){
 							feld.setAttribute("pattern",obj.opts.regex); 
 						}
@@ -175,7 +175,7 @@ your selection will be saved in the browser)
 					case "CheckBox":
 						 var feld = document.createElement("input");
 						feld.setAttribute("type","checkbox"); 
-						feld.checked = "true" == decodeURIComponent(escape(atob(obj.value))).toLowerCase();
+						feld.checked = "true" == obj.value.toLowerCase();
 						row.oodbupdate = function(input) {
 							feld.checked = "true" == input.value.toLowerCase();
 						};
@@ -192,7 +192,7 @@ your selection will be saved in the browser)
 						feld.setAttribute("min",obj.opts.min); 
 						feld.setAttribute("max",obj.opts.max); 
 						feld.setAttribute("step",obj.opts.step); 
-						feld.value = parseFloat(decodeURIComponent(escape(atob(obj.value))));
+						feld.value = parseFloat(obj.value);
 						row.oodbupdate = function(input) {
 							feld.value = parseFloat(input.value);
 						};
@@ -220,7 +220,7 @@ your selection will be saved in the browser)
 							opt.innerHTML = deptList[i];
 							feld.appendChild(opt);
 						}
-						feld.selectedIndex =parseInt(decodeURIComponent(escape(atob(obj.value))))-1;
+						feld.selectedIndex =parseInt(obj.value)-1;
 						row.oodbupdate = function(input) {
 							feld.selectedIndex =  parseInt(input.value)-1;
 						};
@@ -238,7 +238,7 @@ your selection will be saved in the browser)
 						feld.setAttribute("high",obj.opts.high); 
 						feld.setAttribute("low",obj.opts.low); 
 						feld.setAttribute("optimum",obj.opts.optimum); 
-						feld.value = parseFloat(decodeURIComponent(escape(atob(obj.value))));
+						feld.value = parseFloat(obj.value);
 						row.oodbupdate = function(input) {
 							feld.value = parseFloat(input.value);
 						};
@@ -253,7 +253,7 @@ your selection will be saved in the browser)
 						break;
 					}
 				}
-				Oobd.addObject(row, decodeURIComponent(escape(atob(obj.value))));
+				Oobd.addObject(row, obj.value);
 
 			}
 
@@ -277,10 +277,10 @@ your selection will be saved in the browser)
 					a.textContent = id;
 					cell1.appendChild(a);
 				}else{
-					cell1.innerHTML = decodeURIComponent(escape(id));
+					cell1.innerHTML = id;
 				}
 				// Add some text to the new cells:
-				cell2.innerHTML = decodeURIComponent(escape(change));
+				cell2.innerHTML = change;
 			};		
 		function saveOutput(fileName){
 			var blob = new Blob([document.getElementById("textoutput").value], {

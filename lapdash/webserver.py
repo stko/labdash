@@ -73,6 +73,7 @@ class WSHandler(HTTPWebSocketsHandler):
 		'''
 
 		message = {'type': type, 'config': config}
+		pprint(message)
 		self.send_message(json.dumps(message))
 
 	def on_ws_message(self, message):
@@ -117,8 +118,9 @@ class WSHandler(HTTPWebSocketsHandler):
 		ws_clients.append(self.user)
 		global modref
 		modref.message_handler.queue_event(self.user.name,defaults.MSG_SOCKET_CONNECT,None)
-		self.send_message(json.dumps({'type': 'WSCONNECT','script':'Python_sim'}))
-		self.send_message(json.dumps({'type': 'WRITESTRING','data':'bla'}))
+		self.emit(defaults.MSG_SOCKET_WSCONNECT,{'script':'Python_sim'})
+		self.emit('WRITESTRING',{'data':'bla'})
+		modref.message_handler.queue_event(self.user.name,defaults.EPA_LOADDIR,{'epa_dir':'/home/steffen/Desktop/workcopies/lapdash/web/examples/'})
 
 
 	def on_ws_closed(self):

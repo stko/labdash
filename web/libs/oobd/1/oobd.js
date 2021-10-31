@@ -433,42 +433,42 @@ if (typeof Oobd == "undefined") {
 				}
 
 				this.connection.onmessage = function(rawMsg) {
-					console.log("data " + rawMsg.data);
+					console.log("data " + rawMsg.data); // this is the full message
 					try {
 						var obj = JSON.parse(rawMsg.data);
 						if (obj.type == "VALUE") {
-							obj.value = atob(obj.value);
-							var owner = obj.to.name;
+							obj.config.value = atob(obj.config.value);
+							var owner = obj.config.to.name;
 							for (i = 0; i < Oobd.visualizers.length; ++i) { // search for the real id of a function owner
 								if (Oobd.visualizers[i].command == owner) {
-									if (Oobd.visualizers[i].object.oobd.value != obj.value){
+									if (Oobd.visualizers[i].object.oobd.value != obj.config.value){
 										if (Oobd.getUpdateFlag(Oobd.visualizers[i],Oobd.FLAG_LOG)){
-											Oobd.writeString(new Date().toLocaleTimeString()+"\t"+Oobd.visualizers[i].tooltip + "\t"+Oobd.visualizers[i].object.oobd.value + "\t"+obj.value+"\n","");
+											Oobd.writeString(new Date().toLocaleTimeString()+"\t"+Oobd.visualizers[i].tooltip + "\t"+Oobd.visualizers[i].object.oobd.value + "\t"+obj.config.value+"\n","");
 										}
 									}
-									Oobd.visualizers[i].value = obj.value;
-									Oobd.visualizers[i].object.oobd.value = obj.value;
-									Oobd.visualizers[i].object.oodbupdate(obj);
+									Oobd.visualizers[i].value = obj.config.value;
+									Oobd.visualizers[i].object.oobd.value = obj.config.value;
+									Oobd.visualizers[i].object.oodbupdate(obj.config);
 								}
 							}
 							Oobd._timerTick();
 						}
 
 						if (obj.type == "WSCONNECT") {
-							Oobd.scriptID=obj.script;
+							Oobd.scriptID=obj.config.script;
 							if (typeof Oobd.onConnect != "undefined") {
 								Oobd.onConnect();
 							}							
 						}
 
 						if (obj.type == "WRITESTRING") {
-							Oobd._handleWriteString(obj);
+							Oobd._handleWriteString(obj.config);
 						}
 
 						if (obj.type == "PAGE") {
-							if (typeof Oobd.openPage != "undefined" && typeof obj.name != "undefined" && obj.name.length > 0) {
+							if (typeof Oobd.openPage != "undefined" && typeof obj.config.name != "undefined" && obj.config.name.length > 0) {
 								console.log("try to OpenPage");
-								Oobd.openPage(obj.name);
+								Oobd.openPage(obj.config.name);
 								// as OpenPages resets the list of available visualizers also for the Dashboard, we have to redraw the dashboard after each new page
 								if (typeof Oobd.fillDashboard != "undefined") {
 									Oobd.fillDashboard();
@@ -479,24 +479,24 @@ if (typeof Oobd == "undefined") {
 						if (obj.type == "VISUALIZE") {
 							if (typeof Oobd.visualize != "undefined" ) {
 								console.log("try to Visualize");
-								Oobd.visualize(obj);
+								Oobd.visualize(obj.config);
 							}
 						}
 						if (obj.type == "PARAM") {
-							if (typeof obj.PARAM.confirm !="undefined"){ // do we need a yes/no dialog or a value input?
+							if (typeof obj.config.PARAM.confirm !="undefined"){ // do we need a yes/no dialog or a value input?
 								if (typeof Oobd.confirm != "undefined" ) {
 									console.log("try to open confirm");
-									Oobd.confirm(obj);
+									Oobd.confirm(obj.config);
 								}else{
-									var answer = window.confirm(atob(obj.PARAM.text)) ? "true":"false";
+									var answer = window.confirm(atob(obj.config.PARAM.text)) ? "true":"false";
 									Oobd.connection.send('{"type":"PARAM","answer":"'+btoa(answer)+'"}');
 								}
 							}else{
 								if (typeof Oobd.prompt != "undefined" ) {
 									console.log("try to open prompt");
-									Oobd.prompt(obj);
+									Oobd.prompt(obj.config);
 								}else{
-									var answer = window.prompt(atob(obj.PARAM.text),atob(obj.PARAM.default));
+									var answer = window.prompt(atob(obj.config.PARAM.text),atob(obj.config.PARAM.default));
 									Oobd.connection.send('{"type":"PARAM","answer":"'+btoa(answer)+'"}');
 								}
 							}
@@ -504,9 +504,9 @@ if (typeof Oobd == "undefined") {
 						if (obj.type == "DIALOG_INFO") {
 							if (typeof Oobd.alert != "undefined" ) {
 								console.log("try to open Alert");
-								Oobd.alert(obj);
+								Oobd.alert(obj.config);
 							}else{
-								window.alert(atob(obj.DIALOG_INFO.tooltip));
+								window.alert(atob(obj.config.DIALOG_INFO.tooltip));
 							}
 						}
 						

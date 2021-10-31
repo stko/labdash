@@ -1,6 +1,6 @@
 {
   "title": "OOBD UI Elements",
-  "script": "UICreation.lbc",
+  "script": "index.py",
   "description": "OOBD Demo which shows the features of the standard UI Elements",
   "version": "1.0",
   "copyright": "GPLV2",

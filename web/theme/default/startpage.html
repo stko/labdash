@@ -337,9 +337,9 @@
 				}
 				// define own alert dialog
 			Oobd.alert = function(obj) {
-				$("#dialog-modal").html(atob(obj.DIALOG_INFO.tooltip));
+				$("#dialog-modal").html(obj.DIALOG_INFO.tooltip);
 				$("#dialog-modal").dialog({
-					title: atob(obj.DIALOG_INFO.title),
+					title: obj.DIALOG_INFO.title,
 					width: 600,
 					height: 400,
 					buttons: {
@@ -433,7 +433,7 @@
 			tbl.classList.add("OOBD");
 			tbl.setAttribute("oobd:fc", obj.name);
 			tbl.setAttribute("oobd:tooltip", atob(obj.tooltip));
-			tbl.setAttribute("oobd:value", decodeURIComponent(escape(atob(obj.value))));
+			tbl.setAttribute("oobd:value", obj.value);
 			tbl.setAttribute("oobd:constructor", JSON.stringify(obj));
 			if (typeof obj.updevents != "undefined") {
 				tbl.setAttribute("oobd:updevents", parseInt(obj.updevents));
@@ -459,12 +459,12 @@
 				createUpdateflag(icondiv, tbl, Oobd.FLAG_LOG, "ui-icon-pencil", 'Log changes');
 			}
 			// Add some text to the new cells:
-			cell1.innerHTML = decodeURIComponent(escape(atob(obj.tooltip)));
+			cell1.innerHTML = obj.tooltip;
 			//let see, if the visualizer is a graphic element
 			if (typeof obj.opts == 'undefined') {
 				//the simple way
 				tbl.setAttribute("oobd:click", "yes");
-				cell2.innerHTML = decodeURIComponent(escape(atob(obj.value)));
+				cell2.innerHTML = obj.value;
 				tbl.oodbupdate = function(input) {
 					cell2.innerHTML = input.value;
 				};
@@ -479,7 +479,7 @@
 							feld.setAttribute("type", "text");
 						}
 						feld.setAttribute("size", "30");
-						feld.value = decodeURIComponent(escape(atob(obj.value)));
+						feld.value = obj.value;
 						if (typeof obj.opts.regex != 'undefined') {
 							feld.setAttribute("pattern", obj.opts.regex);
 						}
@@ -500,9 +500,9 @@
 						feld.id = id;
 						var label = document.createElement("label");
 						label.htmlFor = id;
-						label.appendChild(document.createTextNode(decodeURIComponent(escape(atob(obj.tooltip)))));
+						label.appendChild(document.createTextNode(obj.tooltip));
 						feld.type = "checkbox";
-						feld.checked = "true" == decodeURIComponent(escape(atob(obj.value))).toLowerCase();
+						feld.checked = "true" == obj.value.toLowerCase();
 						tbl.oodbupdate = function(input) {
 							feld.checked = "true" == input.value.toLowerCase();
 						};
@@ -520,7 +520,7 @@
 						feld.setAttribute("min", obj.opts.min);
 						feld.setAttribute("max", obj.opts.max);
 						feld.setAttribute("step", obj.opts.step);
-						feld.value = parseFloat(decodeURIComponent(escape(atob(obj.value))));
+						feld.value = parseFloat(obj.value);
 						tbl.oodbupdate = function(input) {
 							feld.value = parseFloat(input.value);
 						};
@@ -548,7 +548,7 @@
 							opt.innerHTML = deptList[i];
 							feld.appendChild(opt);
 						}
-						feld.selectedIndex = parseInt(decodeURIComponent(escape(atob(obj.value)))) - 1;
+						feld.selectedIndex = parseInt(obj.value) - 1;
 						tbl.oodbupdate = function(input) {
 							feld.selectedIndex = parseInt(input.value) - 1;
 						};
@@ -567,7 +567,7 @@
 												feld.setAttribute("high",obj.opts.high); 
 												feld.setAttribute("low",obj.opts.low); 
 												feld.setAttribute("optimum",obj.opts.optimum); 
-												feld.value = parseFloat(decodeURIComponent(escape(atob(obj.value))));
+												feld.value = parseFloat(obj.value);
 												tbl.oodbupdate = function(input) {
 													feld.value = parseFloat(input.value);
 												};
@@ -591,12 +591,12 @@
 						cell2.id = myID;
 						var g1 = new JustGage({
 							id: myID,
-							value: parseFloat(decodeURIComponent(escape(atob(obj.value)))),
+							value: parseFloat(obj.value),
 							min: obj.opts.min,
 							max: obj.opts.max,
 							//relativeGaugeSize: true,
 
-							//title: decodeURIComponent(escape(atob(obj.tooltip))),
+							//title: obj.tooltip,
 							label: obj.opts.unit
 						});
 						tbl.oodbupdate = function(input) {
@@ -605,7 +605,7 @@
 						break;
 				}
 			}
-			Oobd.addObject(tbl, decodeURIComponent(escape(atob(obj.value))));
+			Oobd.addObject(tbl, obj.value);
 			return tbl
 		}
 		// add file buffer changes to the page
@@ -635,12 +635,12 @@
 						a.textContent = id;
 						cell1.appendChild(a);
 					} else {
-						cell1.innerHTML = decodeURIComponent(escape(id));
+						cell1.innerHTML = id;
 					}
 				}else{
 					cell2=document.getElementById(fileID+"-c");
 				}
-				cell2.innerHTML = decodeURIComponent(escape(change));
+				cell2.innerHTML = change;
 			}
 		};
 
