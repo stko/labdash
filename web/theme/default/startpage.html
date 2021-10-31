@@ -345,7 +345,7 @@
 					buttons: {
 						"OK": function() {
 							$(this).dialog('close');
-							Oobd.connection.send('{"type":"PARAM","answer":"' + btoa("true") + '"}');
+							Oobd.connection.send(JSON.stringify({"type":"PARAM", "answer": "true"}));
 						}
 					}
 				});
@@ -354,15 +354,15 @@
 			Oobd.prompt = function(obj) {
 				$("#input-modal").dialog({
 					open: function(event, ui) {
-						var mydiv = $("#input-modal").find('#input-text').html(atob(obj.PARAM.text));
+						var mydiv = $("#input-modal").find('#input-text').html(obj.PARAM.text);
 						$("#input-modal").find('input[name="input-input"]').button();
-						$("#input-modal").find('input[name="input-input"]').val(atob(obj.PARAM.default)); //set the value
+						$("#input-modal").find('input[name="input-input"]').val(obj.PARAM.default); //set the value
 					},
 					close: function(event, ui) {
 						var boxInput = $("#input-modal").find('input[name="input-input"]').val(); //get the value..
-						Oobd.connection.send('{"type":"PARAM","answer":"' + btoa(boxInput) + '"}');
+						Oobd.connection.send(JSON.stringify({"type":"PARAM","answer": boxInput}));
 					},
-					title: atob(obj.PARAM.title),
+					title: obj.PARAM.title,
 					width: 600,
 					height: 400,
 					buttons: {
@@ -374,19 +374,19 @@
 			};
 			// define own confirm dialog
 			Oobd.confirm = function(obj) {
-				$("#dialog-modal").html(atob(obj.PARAM.text));
+				$("#dialog-modal").html(obj.PARAM.text);
 				$("#dialog-modal").dialog({
-					title: atob(obj.PARAM.title),
+					title: obj.PARAM.title,
 					width: 600,
 					height: 400,
 					buttons: {
 						"Yes": function() {
 							$(this).dialog('close');
-							Oobd.connection.send('{"type":"PARAM","answer":"' + btoa("true") + '"}');
+							Oobd.connection.send(JSON.stringify({"type":"PARAM","answer": "true"}));
 						},
 						"No": function() {
 							$(this).dialog('close');
-							Oobd.connection.send('{"type":"PARAM","answer":"' + btoa("false") + '"}');
+							Oobd.connection.send(JSON.stringify({"type":"PARAM","answer":"false"}));
 						}
 					}
 				});
@@ -432,7 +432,7 @@
 				</tr>';
 			tbl.classList.add("OOBD");
 			tbl.setAttribute("oobd:fc", obj.name);
-			tbl.setAttribute("oobd:tooltip", atob(obj.tooltip));
+			tbl.setAttribute("oobd:tooltip", obj.tooltip);
 			tbl.setAttribute("oobd:value", obj.value);
 			tbl.setAttribute("oobd:constructor", JSON.stringify(obj));
 			if (typeof obj.updevents != "undefined") {

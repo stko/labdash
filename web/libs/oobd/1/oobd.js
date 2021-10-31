@@ -437,7 +437,6 @@ if (typeof Oobd == "undefined") {
 					try {
 						var obj = JSON.parse(rawMsg.data);
 						if (obj.type == "VALUE") {
-							obj.config.value = atob(obj.config.value);
 							var owner = obj.config.to.name;
 							for (i = 0; i < Oobd.visualizers.length; ++i) { // search for the real id of a function owner
 								if (Oobd.visualizers[i].command == owner) {
@@ -488,16 +487,16 @@ if (typeof Oobd == "undefined") {
 									console.log("try to open confirm");
 									Oobd.confirm(obj.config);
 								}else{
-									var answer = window.confirm(atob(obj.config.PARAM.text)) ? "true":"false";
-									Oobd.connection.send('{"type":"PARAM","answer":"'+btoa(answer)+'"}');
+									var answer = window.confirm(obj.config.PARAM.text) ? "true":"false";
+									Oobd.connection.send(JSON.stringify({"type":"PARAM","answer": answer}));
 								}
 							}else{
 								if (typeof Oobd.prompt != "undefined" ) {
 									console.log("try to open prompt");
 									Oobd.prompt(obj.config);
 								}else{
-									var answer = window.prompt(atob(obj.config.PARAM.text),atob(obj.config.PARAM.default));
-									Oobd.connection.send('{"type":"PARAM","answer":"'+btoa(answer)+'"}');
+									var answer = window.prompt(obj.config.PARAM.text,obj.config.PARAM.default);
+									Oobd.connection.send(JSON.stringify({"type":"PARAM","answer": answer}));
 								}
 							}
 						}
@@ -506,7 +505,7 @@ if (typeof Oobd == "undefined") {
 								console.log("try to open Alert");
 								Oobd.alert(obj.config);
 							}else{
-								window.alert(atob(obj.config.DIALOG_INFO.tooltip));
+								window.alert(obj.config.DIALOG_INFO.tooltip);
 							}
 						}
 						
@@ -610,7 +609,7 @@ if (typeof Oobd == "undefined") {
 
 		sendUpdateReq: function(name, optid, value, updType) {
 			if (typeof Oobd.connection.send != "undefined") {
-				Oobd.connection.send('{"name":"' + name + '","optid":"' + optid + '","actValue":"' + btoa(value) + '","updType":' + updType + '}');
+				Oobd.connection.send(JSON.stringify({"name": name, "optid": optid , "actValue":value, "updType":updType }));
 			} else {
 				return false;
 			}
@@ -645,7 +644,7 @@ if (typeof Oobd == "undefined") {
 				if (obj.getAttribute("oobd:click") == "yes") {
 					obj.addEventListener("click", function() {
 						console.log("clicked command " + this.oobd.command + "with value" + this.oobd.value);
-						//							Oobd.connection.send('{"name":"'+this.oobd.command+'","optid":"'+this.oobd.optid+'","value":"'+btoa(this.oobd.value)+'","updType":1}');
+						//							Oobd.connection.send(JSON.stringify({"name": this.oobd.command ,"optid": this.oobd.optid , "value": this.oobd.value ,"updType":1}));
 						Oobd.sendUpdateReq(this.oobd.command, this.oobd.optid, this.oobd.value, 0);
 					});
 				}

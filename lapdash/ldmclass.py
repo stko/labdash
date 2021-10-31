@@ -20,7 +20,13 @@ class LDMClass(metaclass=ABCMeta):
 	def  event_listener(self, queue_event):
 		''' handler for system events
 		'''
-		pass
+		print("LDMClass event handler", queue_event.type, queue_event.user)
+
+		if queue_event.type == defaults.MSG_SOCKET_BROWSER:
+				print("Message from Browser")
+				return None # event handled, no further processing
+		
+		return queue_event
 
 	def query_handler(self, queue_event, max_result_count):
 		''' handler for system queries

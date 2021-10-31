@@ -93,13 +93,9 @@ class WSHandler(HTTPWebSocketsHandler):
 			return
 		#self.log_message('json msg: %s', message)
 
-		if data['type'] == 'msg':
-			self.log_message('msg %s', data['data'])
-		if data['type'] == '_join':
-			self.user.name= data['config']['name'].lower()
 
 		global modref
-		modref.message_handler.queue_event(self.user.name,data['type'],data['config'])
+		modref.message_handler.queue_event(self.user.name,defaults.MSG_SOCKET_BROWSER,data)
 
 
 	def handle(self):
