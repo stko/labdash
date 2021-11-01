@@ -116,7 +116,7 @@ class WSHandler(HTTPWebSocketsHandler):
 		modref.message_handler.queue_event(self.user.name,defaults.MSG_SOCKET_CONNECT,None)
 		self.emit(defaults.MSG_SOCKET_WSCONNECT,{'script':'Python_sim'})
 		self.emit('WRITESTRING',{'data':'bla'})
-		modref.message_handler.queue_event(self.user.name,defaults.EPA_LOADDIR,{'epa_dir':'/home/steffen/Desktop/workcopies/lapdash/web/examples/'})
+		modref.message_handler.queue_event(self.user.name,defaults.EPA_LOADDIR,{'epa_dir':None})
 
 
 	def on_ws_closed(self):

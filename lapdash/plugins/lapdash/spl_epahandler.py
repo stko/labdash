@@ -17,7 +17,7 @@ import traceback
 from base64 import b64encode
 import base64
 import time
-import regex as re
+import re
 from io import StringIO
 import threading
 import uuid
@@ -133,7 +133,7 @@ class SplPlugin(SplThread):
 				except: 
 					logger.warning(f'no readable manifest in {file_info.path}')
 					continue
-				file_id = base64.encodestring(file_info.name.encode()).decode().replace('\n','')
+				file_id = base64.b64encode(file_info.name.encode()).decode().replace('\n','')
 				self.epas[file_id]={
 					'file_id' : file_id,
 					'manifest': manifest,
