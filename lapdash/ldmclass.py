@@ -24,6 +24,22 @@ class LDMClass(metaclass=ABCMeta):
 
 		if queue_event.type == defaults.MSG_SOCKET_BROWSER:
 				print("Message from Browser")
+				data=queue_event.data
+				if not ('name' in data and 'actValue' in data and 'updType' in data):
+					print('incorrect message format from Webb browser')
+					return None
+				name=data['name']
+				actValue=data['actValue']
+				updType=data['updType']
+				try:
+					new_Value= self.execute_method_by_name(name, actValue,updType)
+					self.msg_handler.queue_event(None, defaults.MSG_SOCKET_MSG, {
+		'type': defaults.CM_VALUE, 'config': {
+			'to':{'name':name},
+			'value':new_Value
+			}})
+				except Exception as ex:
+					print("Error: Execption when execute script function", str(ex))
 				return None # event handled, no further processing
 		
 		return queue_event

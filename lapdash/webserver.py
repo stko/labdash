@@ -91,7 +91,7 @@ class WSHandler(HTTPWebSocketsHandler):
 		except:
 			self.log_message('%s', 'Invalid JSON')
 			return
-		#self.log_message('json msg: %s', message)
+		self.log_message('json msg: %s', message)
 
 
 		global modref

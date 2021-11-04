@@ -53,7 +53,7 @@ class SplPlugin(SplThread):
 		self.lock = threading.Lock()
 
 		self.epas = {}
-
+		self.instance=None
 		# at last announce the own plugin
 		super().__init__(modref.message_handler, self)
 		modref.message_handler.add_event_handler(
@@ -65,14 +65,16 @@ class SplPlugin(SplThread):
 	def event_listener(self, queue_event):
 		''' 
 		'''
-		#print("epahandler event handler", queue_event.type, queue_event.user)
+		print("epahandler event handler", queue_event.type, queue_event.user)
 
 		if queue_event.type == defaults.EPA_LOADDIR:
 				self.load_epa_dir(queue_event.data['epa_dir'])
 				if self.epas:
 					self.load_epa(list(self.epas.values())[0])
 				return None # event handled, no further processing
-
+		if queue_event.type == defaults.MSG_SOCKET_BROWSER and self.instance:
+				# let the ldmclass handle the event
+				return self.instance.event_listener(queue_event)
 		# for further pocessing, do not forget to return the queue event
 		return queue_event
 
@@ -151,13 +153,16 @@ class SplPlugin(SplThread):
 		''' inits the plugin
 		'''
 		try:
-
 			module_spec = importlib.util.spec_from_file_location(epa_info['script'], epa_info['full_path_name'])
 			my_module = importlib.util.module_from_spec(module_spec)
+			# end a previous instance, if there is one
+			if self.instance:
+				self.instance.stop()
+				self.instance = None
 			module_spec.loader.exec_module(my_module)
-			instance = my_module.LDM(self.modref.message_handler)
-			self.epas[epa_info['file_id']]['instance'] =instance
-			instance.run()
+			self.instance = my_module.LDM(self.modref.message_handler)
+			self.epas[epa_info['file_id']]['instance'] =self.instance # ? I don't know for that might be used later, but I just keep it in :-)
+			self.instance.run()
 		except Exception as e:
 			print("Can't load plugin "+str(e))
 			traceback.print_exc(file=sys.stdout)
