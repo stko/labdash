@@ -85,7 +85,7 @@ class Webserver(SplThread):
 
 		# https://githubmemory.com/repo/heroku-python/flask-sockets/activity
 		self.sockets.url_map.add(
-			Rule('/ws', endpoint=self.on_message, websocket=True))
+			Rule('/ws', endpoint=self.on_create_ws_socket, websocket=True))
 
 		@self.app.route('/')
 		def index():
@@ -95,12 +95,11 @@ class Webserver(SplThread):
 		def send_libs(path):
 			return send_from_directory('/home/steffen/Desktop/workcopies/lapdash/web/libs', path)
 
-		@self.app.route('/default/<path:path>')
+		@self.app.route('/theme/default/<path:path>')
 		def send_theme(path):
 			return send_from_directory('/home/steffen/Desktop/workcopies/lapdash/web/theme/default', path)
 
-
-	def on_message(self, ws):
+	def on_create_ws_socket(self, ws):
 		''' distributes incoming messages to the registered event handlers
 
 		Args:
@@ -113,18 +112,18 @@ class Webserver(SplThread):
 				user=self.connect(ws)
 		else:
 			user=self.connect(ws)
-		message = ws.receive()
-		if message is None:
-			message = ''
-		#self.log_message('websocket received "%s"', str(message))
-		try:
-			data = json.loads(message)
-		except:
-			self.log_message('%s', 'Invalid JSON')
-			return
-		self.log_message('json msg: %s', message)
-		self.modref.message_handler.queue_event(
-			user.name, defaults.MSG_SOCKET_BROWSER, data)
+		while not ws.closed:
+			message = ws.receive()
+			if message:
+				#self.log_message('websocket received "%s"', str(message))
+				try:
+					data = json.loads(message)
+					self.modref.message_handler.queue_event(
+						user.name, defaults.MSG_SOCKET_BROWSER, data)
+				except:
+					#self.log_message('%s', 'Invalid JSON')
+					pass
+				#self.log_message('json msg: %s', message)
 
 	def connect(self, ws):
 		''' thows a connect event about that new connection
@@ -162,7 +161,7 @@ class Webserver(SplThread):
 			user.ws.close()
 			self.ws_clients.remove(user)
 		self.ws = None
-		self.log_message('%s', 'websocket closed')
+		#self.log_message('%s', 'websocket closed')
 		self.modref.message_handler.queue_event(
 			self.user, defaults.MSG_SOCKET_CLOSE, None)
 
@@ -188,10 +187,11 @@ class Webserver(SplThread):
 		'''
 		#print("webserver event handler",queue_event.type,queue_event.user)
 		if queue_event.type == defaults.MSG_SOCKET_MSG:
+			message = {'type': queue_event.data['type'], 'config': queue_event.data['config']}
+			json_message=json.dumps(message)
 			for user in self.ws_clients:
 				if queue_event.user == None or queue_event.user == user.name:
-					user.ws.emit(
-						queue_event.data['type'], queue_event.data['config'])
+					user.ws.send(json_message)
 			return None  # no futher handling of this event
 		# for further pocessing, do not forget to return the queue event
 		return queue_event
@@ -212,15 +212,10 @@ class Webserver(SplThread):
 			os.chdir(origin_dir)
 		except KeyboardInterrupt:
 			print('^C received, shutting down server')
-			self.server.socket.close()
+			self.server.stop()
 
 	def _stop(self):
-		self.server.socket.close()
-
-	def event_listener(self, queue_event):
-		''' handler for system events
-		'''
-		pass
+		self.server.stop()
 
 	def query_handler(self, queue_event, max_result_count):
 		''' handler for system queries
