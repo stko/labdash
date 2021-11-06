@@ -16,7 +16,7 @@ if (typeof Oobd == "undefined") {
 		/**
 		 * Initializes this object.
 		 */
-		wsURL: "ws://"+window.location.hostname+":"+window.location.port,
+		wsURL: "ws://"+window.location.hostname+":"+window.location.port+'/ws',
 		alreadyInitialized: false,
 		session: null,
 		connection: "",
