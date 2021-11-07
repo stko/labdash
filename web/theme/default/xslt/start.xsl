@@ -173,7 +173,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 			<xsl:choose>
 				
 				<xsl:when test="icon !=''">
-					<tr class="oobd-script-icon-tr"><td colspan="2"><a href="{fileid}"><img class="oobd-script-icon" src="{filename}/{icon}"/></a></td></tr>
+					<tr class="oobd-script-icon-tr"><td colspan="2"><a href="{fileid}"><img class="oobd-script-icon" src="{fileid}/{icon}"/></a></td></tr>
 				</xsl:when>
 				<xsl:otherwise>
 					<tr class="oobd-script-icon-tr"><td colspan="2"><a href="{fileid}"><img class="oobd-script-icon" src="/theme/default/images/oobd_button.svg"/></a></td></tr>
@@ -249,7 +249,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 			<tr class="oobd-script-screenshot-tr"><td colspan="2">
 			<xsl:choose>
 				<xsl:when test="screenshot !=''">
-					<img class="oobd-script-screenshot" src="{filename}/{screenshot}"/>
+					<img class="oobd-script-screenshot" src="{fileid}/{screenshot}"/>
 				</xsl:when>
 			</xsl:choose>
 			</td></tr>

@@ -57,6 +57,12 @@ class Webserver(SplThread):
 					"port": 8000,
 					"secure": False
 				},
+				'actual_settings': {
+					'theme':'default',
+					'www_root_dir': 'web/',
+					'epa_root_dir': 'web/examples/'
+				}
+
 			})
 		server_config = self.config.read("server_config", {})
 		# set up the argument parser with values from the config
@@ -89,15 +95,50 @@ class Webserver(SplThread):
 
 		@self.app.route('/')
 		def index():
-			return 'moin'
+			response = self.app.response_class(
+				response=self.epa_catalog_xml_string,
+				status=200,
+				mimetype='application/xml'
+			)
+			return response
 
 		@self.app.route('/libs/<path:path>')
 		def send_libs(path):
-			return send_from_directory('/home/steffen/Desktop/workcopies/lapdash/web/libs', path)
+			return send_from_directory(os.path.join(self.config.read('actual_settings')['www_root_dir'],'libs'), path)
 
-		@self.app.route('/theme/default/<path:path>')
-		def send_theme(path):
-			return send_from_directory('/home/steffen/Desktop/workcopies/lapdash/web/theme/default', path)
+		@self.app.route('/ld/<path:path>')
+		def handle_epa(path):
+			elements=path.split('/') # first we split the path into pieces
+			if not elements: # empty path
+				return self.app.response_class(
+				response="<h2>No EPA reference in URL</h2>",
+				status=404
+			)
+			if len(elements)==1: # this is a request to load a new EPA
+				if not elements[0] in self.epa_directoy:
+					return self.app.response_class(
+						response="<h2>Unknown EPA reference in URL</h2>",
+						status=404
+					)
+				self.actual_file_id=elements[0]
+				epa_info=self.epa_directoy[elements[0]]
+				if 'html' in epa_info: # does this package has its own main html page?
+					return send_from_directory(epa_info['path'], epa_info['html'])
+				else:
+					theme=self.config.read('actual_settings')['theme']
+					return send_from_directory(os.path.join(self.config.read('actual_settings')['www_root_dir'],'theme',theme), 'startpage.html')
+
+
+			# we serve the file from within an epa directory
+			return send_from_directory(self.epa_directoy[elements[0]]['path'], '/'.join(elements[1:]))
+
+		@self.app.route('/theme/<theme>/<path:path>')
+		def send_theme(theme,path):
+			if theme=='default':
+				theme=self.config.read('actual_settings')['theme']
+			return send_from_directory(os.path.join(self.config.read('actual_settings')['www_root_dir'],'theme',theme), path)
+
+
 
 	def on_create_ws_socket(self, ws):
 		''' distributes incoming messages to the registered event handlers
@@ -137,7 +178,10 @@ class Webserver(SplThread):
 		self.emit(defaults.MSG_SOCKET_WSCONNECT, {'script': 'Python_sim'})
 		self.emit('WRITESTRING', {'data': 'bla'})
 		self.modref.message_handler.queue_event(
-			user.name, defaults.EPA_LOADDIR, {'epa_dir': None})
+			None, defaults.EPA_LOAD_EPA, self.actual_file_id
+		)
+
+
 		return user
 
 	def find_user_by_ws(self, ws):
@@ -193,13 +237,24 @@ class Webserver(SplThread):
 				if queue_event.user == None or queue_event.user == user.name:
 					user.ws.send(json_message)
 			return None  # no futher handling of this event
+		if queue_event.type == defaults.EPA_CATALOG:
+			self.epa_catalog_xml_string=queue_event.data
+			return None  # no futher handling of this event
+		if queue_event.type == defaults.EPA_DIRECTORY:
+			self.epa_directoy=queue_event.data
+			return None  # no futher handling of this event
 		# for further pocessing, do not forget to return the queue event
 		return queue_event
 
 	def _run(self):
 		''' starts the server
 		'''
-
+		## read the epa dir with the actual settings
+		self.modref.message_handler.queue_event(
+			None, defaults.EPA_LOADDIR, {
+				'actual_settings': self.config.read('actual_settings')
+			}
+		)
 		try:
 			origin_dir = os.path.dirname(__file__)
 			web_dir = os.path.join(os.path.dirname(

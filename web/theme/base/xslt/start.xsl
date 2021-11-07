@@ -90,7 +90,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 			<td>
 				<xsl:choose>
 					<xsl:when test="icon !=''">
-						<xsl:value-of select="icon"/><img src="{filename}/{icon}"/>
+						<xsl:value-of select="icon"/><img src="{fileid}/{icon}"/>
 					</xsl:when>
 					<xsl:otherwise>
 						-

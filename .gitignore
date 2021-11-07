@@ -1,3 +1,4 @@
 lapdash.code-workspace
 .vscode/*
 __pycache__
+volumes

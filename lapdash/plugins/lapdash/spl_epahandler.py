@@ -68,9 +68,12 @@ class SplPlugin(SplThread):
 		print("epahandler event handler", queue_event.type, queue_event.user)
 
 		if queue_event.type == defaults.EPA_LOADDIR:
-				self.load_epa_dir(queue_event.data['epa_dir'])
-				if self.epas:
-					self.load_epa(list(self.epas.values())[0])
+				self.load_epa_dir(queue_event.data['actual_settings'])
+				return None # event handled, no further processing
+		if queue_event.type == defaults.EPA_LOAD_EPA:
+				file_id=queue_event.data
+				if file_id in self.epas:
+					self.load_epa(self.epas[file_id])
 				return None # event handled, no further processing
 		if queue_event.type == defaults.MSG_SOCKET_BROWSER and self.instance:
 				# let the ldmclass handle the event
@@ -105,16 +108,16 @@ class SplPlugin(SplThread):
 
 	# ------ plugin specific routines
 
-	def load_epa_dir(self, epa_root_dir=None):
-		if not epa_root_dir:
-			epa_root_dir=self.config.read('epa_root_dir')
-		else:
-			self.config.write('epa_root_dir',epa_root_dir)
+	def load_epa_dir(self, actual_settings):
 		self.epas = {}
+		self.actual_settings=actual_settings.copy()
+		self.themes_directory_path=os.path.join(self.actual_settings['www_root_dir'],'theme')
 		regex = re.compile(r'^.+.epd$')
 		try:
 			list_subfolders_with_paths = [
-				file_info for file_info in os.scandir(epa_root_dir) if file_info.is_dir() and regex.match(file_info.name) ]
+				file_info for file_info in os.scandir(self.actual_settings['epa_root_dir']) if file_info.is_dir() and regex.match(file_info.name) ]
+			self.theme_names = [
+				file_info.name for file_info in os.scandir(self.themes_directory_path) if file_info.is_dir() ]
 			for file_info in list_subfolders_with_paths:
 				script=None
 				# does a manifest file exist?
@@ -143,6 +146,12 @@ class SplPlugin(SplThread):
 					'script': script,
 					'full_path_name' : os.path.join(file_info.path,script)
 					}
+			
+			self.modref.message_handler.queue_event(
+				None, defaults.EPA_DIRECTORY, self.epas.copy()
+			)
+
+			self.construct_catalog()
 
 		except Exception as e:
 			print("Can't load plugin "+str(e))
@@ -167,4 +176,74 @@ class SplPlugin(SplThread):
 			print("Can't load plugin "+str(e))
 			traceback.print_exc(file=sys.stdout)
 
+	def construct_catalog(self):
+		'''
+		creates the xml struct about the available content, which is tranfered to the Browser if the Browser goes on / and
+		which then creates the catalog of available scripts
+		'''
+
+		# https://stackoverflow.com/a/61254611
+
+		from lxml import etree as ET
+
+		# Note the use of nsmap. The syntax used in the question is not accepted by lxml
+		root_element = ET.Element("catalog")
+
+		# Create PI and and insert it before the root element
+		pi = ET.ProcessingInstruction("xml-stylesheet", text='type="text/xsl" href="/theme/default/xslt/start.xsl"')
+		root_element.addprevious(pi)
+
+		## here we had a list of different types connections in OOBD  - not needed anymore?
+
+		element_node = ET.SubElement(root_element ,"connection")
+		element_node.attrib['selected']='yes'
+		element_node.text = "Default connection"
+		
+		# prepare a list of available themes
+		for theme in self.theme_names:
+			element_node = ET.SubElement(root_element ,"theme")
+			if theme.lower() == self.actual_settings['theme'].lower():
+				element_node.attrib['selected']='yes'
+			element_node.text = theme
+
+		# now we add the epa dirs
+		for epa_info in self.epas.values():
+			element_node = ET.SubElement(root_element ,"script")
+			sub_element =ET.SubElement(element_node ,"fileid")
+			sub_element.text = '/ld/'+epa_info['file_id']
+
+			sub_element =ET.SubElement(element_node ,"filename")
+			sub_element.text = epa_info['path']
+			if epa_info['manifest']: # more data available
+
+				# this is the list of optinonal values, which we copy, in case they are there
+				optional_values={
+					'title' : 'title',
+					'name' : 'name',
+					'shortname' : 'shortname',
+					'description' : 'description',
+					'version' : 'version',
+					'copyright' : 'copyright',
+					'author' : 'author',
+					'security' : 'security',
+					'date' : 'date',
+					'icon' : 'icon',
+					'screenshot' : 'screenshot',
+					'url' : 'url',
+					'email' : 'email',
+					'phone' : 'phone',
+					'html' : 'html',
+				}
+
+				for key, tag_name in optional_values.items():
+					if key in epa_info['manifest']:
+						value=epa_info['manifest'][key]
+						sub_element =ET.SubElement(element_node ,tag_name)
+						sub_element.text = value
+
+		catalog_xml_string=ET.tostring(ET.ElementTree(root_element),encoding="utf-8",
+										xml_declaration=True, pretty_print=True)
+		self.modref.message_handler.queue_event(
+			None, defaults.EPA_CATALOG, catalog_xml_string
+		)
 
