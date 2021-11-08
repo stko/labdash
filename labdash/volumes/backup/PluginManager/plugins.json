@@ -1,7 +1,0 @@
-{
-    "plugins": {
-        "epahandler": {
-            "active": true
-        }
-    }
-}
