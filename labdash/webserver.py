@@ -80,7 +80,7 @@ class Webserver(SplThread):
 		self.app = Flask(__name__)
 		self.sockets = Sockets(self.app)
 		self.ws_clients = []  # my actual browser connections
-
+		self.actual_file_id=None
 		self.modref.message_handler.add_event_handler(
 			'webserver', 0, self.event_listener)
 		if self.args.secure:
@@ -175,11 +175,12 @@ class Webserver(SplThread):
 		self.ws_clients.append(user)
 		self.modref.message_handler.queue_event(
 			user.name, defaults.MSG_SOCKET_CONNECT, None)
-		self.emit(defaults.MSG_SOCKET_WSCONNECT, {'script': 'Python_sim'})
-		self.emit('WRITESTRING', {'data': 'bla'})
-		self.modref.message_handler.queue_event(
-			None, defaults.EPA_LOAD_EPA, self.actual_file_id
-		)
+		if self.actual_file_id:
+			self.emit(defaults.MSG_SOCKET_WSCONNECT, {'script': 'Python_sim'})
+			self.emit('WRITESTRING', {'data': 'bla'})
+			self.modref.message_handler.queue_event(
+				None, defaults.EPA_LOAD_EPA, self.actual_file_id
+			)
 
 
 		return user
