@@ -6,9 +6,13 @@ import json
 from base64 import b64encode
 import argparse
 import time
+import webbrowser
+
+import socket
 
 from jsonstorage import JsonStorage
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, send_from_directory, request
+from werkzeug.datastructures import Headers
 from flask_sockets import Sockets, Rule
 from gevent import pywsgi
 from geventwebsocket.handler import WebSocketHandler
@@ -55,7 +59,8 @@ class Webserver(SplThread):
 					"credentials": "",
 					"host": "0.0.0.0",
 					"port": 8000,
-					"secure": False
+					"secure": False,
+					"openbrowser" : False
 				},
 				'actual_settings': {
 					'theme':'default',
@@ -75,30 +80,41 @@ class Webserver(SplThread):
 							help="use secure https: and wss:")
 		parser.add_argument("-c", "--credentials",  default=server_config["credentials"],
 							help="user credentials")
+		parser.add_argument("-b", "--browser", action="store_true", default=server_config["openbrowser"],
+							help="opens a browser window")
 		self.args = parser.parse_args()
-
+		self.theme=self.config.read('actual_settings')['theme']
 		self.app = Flask(__name__)
 		self.sockets = Sockets(self.app)
 		self.ws_clients = []  # my actual browser connections
 		self.actual_file_id=None
+		self.awaiting_initial_content_list=True
 		self.modref.message_handler.add_event_handler(
 			'webserver', 0, self.event_listener)
-		if self.args.secure:
-			print('initialized secure https server at port %d' %
-				  (self.args.port))
-		else:
-			print('initialized http server at port %d' % (self.args.port))
-
 		# https://githubmemory.com/repo/heroku-python/flask-sockets/activity
 		self.sockets.url_map.add(
 			Rule('/ws', endpoint=self.on_create_ws_socket, websocket=True))
 
-		@self.app.route('/')
+		@self.app.route('/',methods=['GET', 'POST'])
 		def index():
+			headers=None
+			if request.method == 'POST':
+				if 'theme' in  request.form:
+					self.theme= request.form['theme']
+
+					'''
+					Somehow we'll need to tell the Browser to reload all files if the theme has changed - but how?!?!
+
+					headers = Headers()
+					headers.add('Content-Type', 'text/plain')
+					headers.add('Content-Disposition', 'attachment', filename='foo.png')
+					'''
+
 			response = self.app.response_class(
-				response=self.epa_catalog_xml_string,
-				status=200,
-				mimetype='application/xml'
+			response=self.epa_catalog_xml_string,
+			status=200,
+			headers=headers,
+			mimetype='application/xml'
 			)
 			return response
 
@@ -125,8 +141,7 @@ class Webserver(SplThread):
 				if 'html' in epa_info: # does this package has its own main html page?
 					return send_from_directory(epa_info['path'], epa_info['html'])
 				else:
-					theme=self.config.read('actual_settings')['theme']
-					return send_from_directory(os.path.join(self.config.read('actual_settings')['www_root_dir'],'theme',theme), 'startpage.html')
+					return send_from_directory(os.path.join(self.config.read('actual_settings')['www_root_dir'],'theme',self.theme), 'startpage.html')
 
 
 			# we serve the file from within an epa directory
@@ -135,7 +150,7 @@ class Webserver(SplThread):
 		@self.app.route('/theme/<theme>/<path:path>')
 		def send_theme(theme,path):
 			if theme=='default':
-				theme=self.config.read('actual_settings')['theme']
+				theme=self.theme
 			return send_from_directory(os.path.join(self.config.read('actual_settings')['www_root_dir'],'theme',theme), path)
 
 
@@ -240,6 +255,9 @@ class Webserver(SplThread):
 			return None  # no futher handling of this event
 		if queue_event.type == defaults.EPA_CATALOG:
 			self.epa_catalog_xml_string=queue_event.data
+			# we need to start the server, if the initial catalog is available
+			if self.awaiting_initial_content_list:
+				self.awaiting_initial_content_list=False
 			return None  # no futher handling of this event
 		if queue_event.type == defaults.EPA_DIRECTORY:
 			self.epa_directoy=queue_event.data
@@ -250,22 +268,39 @@ class Webserver(SplThread):
 	def _run(self):
 		''' starts the server
 		'''
-		## read the epa dir with the actual settings
-		self.modref.message_handler.queue_event(
-			None, defaults.EPA_LOADDIR, {
-				'actual_settings': self.config.read('actual_settings')
-			}
-		)
 		try:
+			""" 
 			origin_dir = os.path.dirname(__file__)
 			web_dir = os.path.join(os.path.dirname(
 				__file__), defaults.WEB_ROOT_DIR)
-			os.chdir(web_dir)
+			os.chdir(web_dir) """
+			'''
+			First we prepare the server, but we wait to start until the event message  defaults.EPA_CATALOG comes in
+			to gives a valid list of available modules
+			'''
 
 			self.server = pywsgi.WSGIServer(
 				(self.args.host, self.args.port), self.app, handler_class=WebSocketHandler)
+			## read the epa dir with the actual settings
+			self.modref.message_handler.queue_event(
+				None, defaults.EPA_LOADDIR, {
+					'actual_settings': self.config.read('actual_settings')
+				}
+			)
+			while self.awaiting_initial_content_list:
+				time.sleep(0.3)
+			if self.args.secure:
+				print('initialized secure https server at port %d' %
+					(self.args.port))
+				webbrowser.open(f'https://{self.extract_ip()}:{self.args.port}', new=2)
+			else:
+				print('initialized http server at port %d' % (self.args.port))
+			if self.args.browser:
+				webbrowser.open(f'http://{self.extract_ip()}:{self.args.port}', new=2)
+
 			self.server.serve_forever()
-			os.chdir(origin_dir)
+
+			#os.chdir(origin_dir)
 		except KeyboardInterrupt:
 			print('^C received, shutting down server')
 			self.server.stop()
@@ -277,6 +312,18 @@ class Webserver(SplThread):
 		''' handler for system queries
 		'''
 		pass
+
+	# https://www.delftstack.com/de/howto/python/get-ip-address-python/
+	def extract_ip(self):
+		st = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		try:       
+			st.connect(('10.255.255.255', 1))
+			IP = st.getsockname()[0]
+		except Exception:
+			IP = '127.0.0.1'
+		finally:
+			st.close()
+		return IP
 
 
 if __name__ == '__main__':
