@@ -14,6 +14,14 @@ class LDMClass(metaclass=ABCMeta):
 	'''Partly abstract class as base class for LabDash modules
 	'''
 
+	# Visualizer flag constants
+	VI_SUBMENU = 1 # visible indication of a submeni, no function
+	VI_UPDATE  = 2 # gets updated when the update button is pressed
+	VI_TIMER   = 4 # gets updated when the update timer is running
+	VI_LOG     = 8 # writes an entry in the text output, whenever the value changes
+	VI_BACK    = 16 # would be called if on the UI the hard coded "Back"- button is used (only in hard coded UIs, not (yet) in Browser)
+	VI_GRAPH   = 32  #???
+
 	def __init__(self, msg_handler):
 		self.msg_handler = msg_handler
 
