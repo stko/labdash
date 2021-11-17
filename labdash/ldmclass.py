@@ -81,8 +81,14 @@ class LDMClass(metaclass=ABCMeta):
 		return self.th.isAlive()
 		'''
 		
-	def execute_method_by_name(self, name, oldvalue,id):
+	def execute_method_by_name(self, name, oldvalue,updType):
 		try:
+			elements=name.split(':',1) # seperate function name from optId
+			if len(elements)>1:
+				name=elements[0]
+				id=elements[1]
+			else:
+				id=''
 			return getattr(self, name)(oldvalue,id)
 		except Exception as e:
 			print(f"Can't execute method {name} "+str(e))
@@ -109,7 +115,7 @@ class LDMClass(metaclass=ABCMeta):
 		if oobdElementFlags:
 			msg['FN_UPDATEOPS'] = oobdElementFlags
 		if optid:
-			msg['optid'] = optid
+			msg['name'] += ':'+optid
 		if optTable:
 			msg['opts'] = optTable
 		self.msg_handler.queue_event(None, defaults.MSG_SOCKET_MSG, {
