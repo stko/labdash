@@ -32,6 +32,9 @@ class PluginManager():
 				'plugins':{
 					"epahandler": {
 						"active": True
+					},
+					"webserver": {
+						"active": True
 					}
 				}
 			}

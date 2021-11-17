@@ -43,7 +43,9 @@ class WebsocketUser:
 		self.ws = ws
 
 
-class Webserver(SplThread):
+class SplPlugin(SplThread):
+	plugin_id = 'webserver'
+	plugin_names = ['Flask Webserver']
 
 	def __init__(self, modref):
 		''' creates the HTTP and websocket server
@@ -84,7 +86,7 @@ class Webserver(SplThread):
 							help="opens a browser window")
 		self.args = parser.parse_args()
 		self.theme=self.config.read('actual_settings')['theme']
-		self.app = Flask(__name__)
+		self.app = Flask('webserver')
 		self.sockets = Sockets(self.app)
 		self.ws_clients = []  # my actual browser connections
 		self.actual_file_id=None
@@ -332,7 +334,7 @@ if __name__ == '__main__':
 		message_handler = None
 
 	modref = ModRef()
-	ws = Webserver(modref)
+	ws = SplPlugin(modref)
 	ws.run()
 	while True:
 		time.sleep(1)

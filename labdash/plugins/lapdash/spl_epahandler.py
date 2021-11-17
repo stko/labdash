@@ -65,7 +65,7 @@ class SplPlugin(SplThread):
 	def event_listener(self, queue_event):
 		''' 
 		'''
-		print("epahandler event handler", queue_event.type, queue_event.user)
+		#print("epahandler event handler", queue_event.type, queue_event.user)
 
 		if queue_event.type == defaults.EPA_LOADDIR:
 				self.load_epa_dir(queue_event.data['actual_settings'])
