@@ -2,3 +2,4 @@ lapdash.code-workspace
 .vscode/*
 __pycache__
 volumes
+labdash/plugins/company/
