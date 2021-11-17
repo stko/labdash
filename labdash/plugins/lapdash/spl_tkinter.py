@@ -6,6 +6,7 @@ import os
 import time
 
 from jsonstorage import JsonStorage
+from lxml import objectify
 
 from gevent import pywsgi
 from geventwebsocket.handler import WebSocketHandler
@@ -87,7 +88,7 @@ class SplPlugin(SplThread):
 			print(queue_event.data)
 			return None  # no futher handling of this event
 		if queue_event.type == defaults.EPA_CATALOG:
-			self.epa_catalog_xml_string=queue_event.data
+			self.epa_catalog = objectify.fromstring(queue_event.data)
 			# we need to start the server, if the initial catalog is available
 			if self.awaiting_initial_content_list:
 				self.awaiting_initial_content_list=False
