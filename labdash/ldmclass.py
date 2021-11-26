@@ -24,6 +24,11 @@ class LDMClass(metaclass=ABCMeta):
 
 	def __init__(self, msg_handler):
 		self.msg_handler = msg_handler
+		self.closeHandlers=set()
+		self.bus=None
+
+	def add_close_handler(self,close_handler):
+		self.closeHandlers.add(close_handler)
 
 	def  event_listener(self, queue_event):
 		''' handler for system events
@@ -80,6 +85,9 @@ class LDMClass(metaclass=ABCMeta):
 			self.th.join(timeout)
 		return self.th.isAlive()
 		'''
+		for handler in self.closeHandlers:
+			print("close handler")
+			handler() # call all close handlers
 		
 	def execute_method_by_name(self, name, oldvalue,updType):
 		try:
@@ -194,3 +202,10 @@ class LDMClass(metaclass=ABCMeta):
 	def ioRead(*args, **kwargs):
 		print('Warning: Call of non implemented legacy function ioRead()')
 
+	##### new commands  ##
+	def send_value(self, name, new_Value):
+		self.msg_handler.queue_event(None, defaults.MSG_SOCKET_MSG, {
+		'type': defaults.CM_VALUE, 'config': {
+			'to':{'name':name},
+			'value':new_Value
+			}})

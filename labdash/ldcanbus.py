@@ -17,7 +17,7 @@ import can.interfaces.pcan
 
 '''
 
-def LDCANBus(port=0, bitrate=500000):
+def LDCANBus(ldm_instance,port=0, bitrate=500000):
 	# reads the config, if any
 	config = JsonStorage('Interfaces', 'backup', "config.json",
 		{
@@ -32,7 +32,9 @@ def LDCANBus(port=0, bitrate=500000):
 		})
 	try:
 		canports=config.read('canports')
-		return can.interface.Bus(bustype=canports[port]['bustype'], channel=canports[port]['channel'], bitrate=bitrate)
+		bus= can.interface.Bus(bustype=canports[port]['bustype'], channel=canports[port]['channel'], bitrate=bitrate)
+		ldm_instance.add_close_handler(bus.shutdown)
+		return bus
 	except Exception as ex:
 		print('Error:', str(ex))
 		return None
