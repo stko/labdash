@@ -109,7 +109,7 @@ class LDMClass(metaclass=ABCMeta):
 		self.msg_handler.queue_event(None, defaults.MSG_SOCKET_MSG, {
 			'type':defaults.CM_PAGE,
 			'config': {
-				'data':name
+				'name':name
 			}
 		})
 
