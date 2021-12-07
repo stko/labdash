@@ -6,7 +6,7 @@ import sys
 import os
 import can
 from  jsonstorage import JsonStorage
-import defaults
+from datetime import datetime
 import traceback
 
 import can
@@ -60,22 +60,37 @@ def rcv_can_29b( bus, can_id,timeout):
 	return rcv_can( bus, can_id,timeout, True)
 
 
-def rcv_can( bus, can_id,timeout, extended):
+def rcv_can( bus, can_id,timeout, extended ):
 	bus.set_filters( [{"can_id": can_id,"can_mask": can_id, "extended": extended}])
 	message = bus.recv(timeout=timeout)
 	return message
 
-def format_msgs(data, format_str):
-	[data_type, bit_pos, bit_len, mult, div, offset,unit] = format_str.split(':')
-	bit_pos=int(bit_pos)
-	bit_len=int(bit_len)
-	mult=float(mult)
-	div=float(div)
-	offset=float(offset)
-	if data_type=='f':
-		return str(int.from_bytes(data[bit_pos//8:bit_pos//8+bit_len//8], byteorder='big', signed=False)*mult/div+offset)
-	else:
-		return 'unknown data type in format_str'
+def rcv_collect( bus, can_ids,timeout, extended, append =False):
+	filters=[ {"can_id": can_id,"can_mask": can_id, "extended": extended} for can_id in can_ids]
+	bus.set_filters( filters)
+	res={}
+	timeout/=1000 # the input is in ms, but python is measuring in secs, so we have to covert it
+	after_recv_time=datetime.now()
+	while timeout > 0:
+		# record the start time
+		before_recv_time=after_recv_time
+		message = bus.recv(timeout=timeout)
+		if not message: # nothing received in time, so timoeout reached -> end loop
+			break
+		# take the finishing time
+		after_recv_time=datetime.now()
+		# calculate the time is has taken for the last recv
+		time_d_float = (after_recv_time - before_recv_time ).total_seconds()
+		# substract the time taken from the total timeout
+		timeout -=time_d_float
+		if append:
+			if not message.arbitration_id in res:
+				res[message.arbitration_id]=[message]
+			else:
+				res[message.arbitration_id].append(message)
+		else:
+			res[message.arbitration_id]=[message]
+	return res
 
 def receive_msg(bus,id,extended):
 	if not bus:
@@ -84,9 +99,7 @@ def receive_msg(bus,id,extended):
 	can_id=int(can_id_string,16)
 	timeout=int(timeout)/1000
 	message=rcv_can(bus,can_id,timeout,extended)
-	if not message:
-		return '-'
-	return format_msgs(message.data,format_str)
+	return message
 
 
 	

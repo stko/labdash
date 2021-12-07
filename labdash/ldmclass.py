@@ -9,6 +9,7 @@ import time
 from abc import ABCMeta, abstractmethod
 import defaults
 import traceback
+from bitstring import BitArray# nice module for bit wise operations
 
 class LDMClass(metaclass=ABCMeta):
 	'''Partly abstract class as base class for LabDash modules
@@ -102,6 +103,31 @@ class LDMClass(metaclass=ABCMeta):
 			print(f"Can't execute method {name} "+str(e))
 			traceback.print_exc(file=sys.stdout)
 
+	# some convience methods
+	def format_msgs(self,message, id):
+		[can_id_string, timeout, format_str] =id.split(':',2)
+		if not message:
+			return '-'
+		[data_type, bit_pos, bit_len, mult, div, offset,unit] = format_str.split(':')
+		bit_pos=int(bit_pos)
+		bit_len=int(bit_len)
+		mult=float(mult)
+		div=float(div)
+		offset=float(offset)
+		# length check
+		if data_type != 'a':
+			if bit_pos//8+bit_len//8 > len(message.data):
+				return 'message data too short'
+		# test, if we can use faster byte oriented methods or bit-wise, but slower bitstring operations
+		if bit_pos % 8 == 0  and bit_len % 8 == 0:
+			message_data_bytes=message.data[bit_pos//8:bit_pos//8+bit_len//8]
+		else:
+			message_data_bytes=BitArray(message.data)[bit_pos:bit_pos+bit_len].bytes
+
+		if data_type=='f':
+			return str(int.from_bytes(message_data_bytes, byteorder='big', signed=False)*mult/div+offset)+unit
+		else:
+			return 'unknown data type in format_str'
 
 	# implementation of the old OOBD lua interface commands
 
