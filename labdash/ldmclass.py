@@ -27,6 +27,7 @@ class LDMClass(metaclass=ABCMeta):
 		self.msg_handler = msg_handler
 		self.closeHandlers=set()
 		self.bus=None
+		self.answer_handler=None
 
 	def add_close_handler(self,close_handler):
 		self.closeHandlers.add(close_handler)
@@ -39,22 +40,26 @@ class LDMClass(metaclass=ABCMeta):
 		if queue_event.type == defaults.MSG_SOCKET_BROWSER:
 				print("Message from Browser")
 				data=queue_event.data
-				if not ('name' in data and 'actValue' in data and 'updType' in data):
-					print('incorrect message format from Webb browser')
-					return None
-				name=data['name']
-				actValue=data['actValue']
-				updType=data['updType']
-				try:
-					new_Value= self.execute_method_by_name(name, actValue,updType)
-					self.msg_handler.queue_event(None, defaults.MSG_SOCKET_MSG, {
-		'type': defaults.CM_VALUE, 'config': {
-			'to':{'name':name},
-			'value':new_Value
-			}})
-				except Exception as ex:
-					print("Error: Execption when execute script function", str(ex))
-				return None # event handled, no further processing
+				if 'name' in data and 'actValue' in data and 'updType' in data: # a 
+					name=data['name']
+					actValue=data['actValue']
+					updType=data['updType']
+					try:
+						new_Value= self.execute_method_by_name(name, actValue,updType)
+						self.msg_handler.queue_event(None, defaults.MSG_SOCKET_MSG, {
+							'type': defaults.CM_VALUE, 'config': {
+							'to':{'name':name},
+							'value':new_Value
+						}})
+					except Exception as ex:
+						print("Error: Execption when execute script function", str(ex))
+					
+					return None # event handled, no further processing
+				if 'type' in data and data['type']  == 'PARAM' and 'answer' in data: # a 
+					if self.answer_handler:
+						self.answer_handler(data['answer'])
+						self.answer_handler=None
+					
 		
 		return queue_event
 
@@ -183,7 +188,7 @@ class LDMClass(metaclass=ABCMeta):
 	def serFlush(*args, **kwargs):
 		print('Warning: Call of non implemented legacy function xx()')
 
-	def serDisplayWriteCall(self, text,cmd=None):
+	def displayWrite(self, text,cmd=None):
 		msg={
 			'command' : 'serDisplayWrite',
 			'data' : text,
@@ -195,10 +200,15 @@ class LDMClass(metaclass=ABCMeta):
 			'config': msg
 		})
 
-	def msgBox(self, typeOfBox,title,text,default):
+	def msgBox(self, typeOfBox,title,text,handler,default='OK'):
+		self.answer_handler=handler
 		typeOfBox=typeOfBox.lower()
 		if typeOfBox=='alert':
-			print('Warning: Call of non implemented legacy function msgBox() with internal alert')
+			self.msg_handler.queue_event(None, defaults.MSG_SOCKET_MSG, {
+			'type': defaults.CM_DIALOG_INFO, 'config': {
+				'DIALOG_INFO':{'title' : title,
+				'tooltip':text}
+				}})
 			return
 		msg={
 			defaults.CM_PARAM : {
@@ -236,3 +246,4 @@ class LDMClass(metaclass=ABCMeta):
 			'to':{'name':name},
 			'value':new_Value
 			}})
+	
