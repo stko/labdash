@@ -104,9 +104,9 @@ class LDMClass(metaclass=ABCMeta):
 			traceback.print_exc(file=sys.stdout)
 
 	# some convience methods
-	def format_msgs(self,message, id):
+	def format_msgs(self,data_bytes, id):
 		[can_id_string, timeout, format_str] =id.split(':',2)
-		if not message:
+		if not data_bytes:
 			return '-'
 		[data_type, bit_pos, bit_len, mult, div, offset,unit] = format_str.split(':')
 		bit_pos=int(bit_pos)
@@ -116,18 +116,19 @@ class LDMClass(metaclass=ABCMeta):
 		offset=float(offset)
 		# length check
 		if data_type != 'a':
-			if bit_pos//8+bit_len//8 > len(message.data):
+			if bit_pos//8+bit_len//8 > len(data_bytes):
 				return 'message data too short'
 		# test, if we can use faster byte oriented methods or bit-wise, but slower bitstring operations
 		if bit_pos % 8 == 0  and bit_len % 8 == 0:
-			message_data_bytes=message.data[bit_pos//8:bit_pos//8+bit_len//8]
+			message_data_bytes=data_bytes[bit_pos//8:bit_pos//8+bit_len//8]
 		else:
-			message_data_bytes=BitArray(message.data)[bit_pos:bit_pos+bit_len].bytes
+			message_data_bytes=BitArray(data_bytes)[bit_pos:bit_pos+bit_len].bytes
 
 		if data_type=='f':
-			return str(int.from_bytes(message_data_bytes, byteorder='big', signed=False)*mult/div+offset)+unit
+			raw =int.from_bytes(message_data_bytes, byteorder='big', signed=False)*mult/div+offset
+			return str(raw)+unit , raw
 		else:
-			return 'unknown data type in format_str'
+			return 'unknown data type in format_str' ,None
 
 	# implementation of the old OOBD lua interface commands
 
