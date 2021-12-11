@@ -38,7 +38,7 @@ This design is as ugly as it can be, because it does not contain any HTML beauty
 <a href="/">Main</a>
 <hr/>
 These are the two buttons to "Update the List" and "Cycling Refresh"<br/>
-<button onclick="Oobd.update()">Update</button><label><input type='checkbox' onclick='Oobd.timer(this.checked);'>Timer</label>
+<button onclick="Oobd.update()">Update</button><label><input type='checkbox' onclick='Oobd.timer(this.checked);'>Timer</label> <span class="headline" id="headline">headline</span>
 <hr/>
 This is the table for the OOBD values:
 
@@ -87,12 +87,24 @@ your selection will be saved in the browser)
 			// initialize a new OOBD page to be shown
 			Oobd.openPage = function openPage(text) {
 				window.document.title=text;
+				var myTitle=document.getElementById("headline");
+				if (myTitle){
+					myTitle.innerHTML=text
+				}
+				Oobd.focusElement= null
 				var myTable=document.getElementById("field");
 				while(myTable.hasChildNodes())
 				{
 					myTable.removeChild(myTable.firstChild);
 				}
 				Oobd.clearVisualiers();
+			}
+
+			// page load finished
+			Oobd.pageDone = function pageDone(text) {
+				if (Oobd.focusElement && Oobd.focusElement.focus){
+					Oobd.focusElement.focus()
+				}
 			}
 
 			// add a new visual element to the page

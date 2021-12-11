@@ -309,6 +309,7 @@
 			// initialize a new OOBD page to be shown
 			Oobd.openPage = function openPage(text) {
 				window.document.title = text;
+				Oobd.focusElement= null
 				$("#headline").text(text);
 				spinner.spin(document.getElementById('spin'));
 				gridster[0].remove_all_widgets();
@@ -319,6 +320,9 @@
 			}
 			// page load finished
 			Oobd.pageDone = function pageDone(text) {
+				if (Oobd.focusElement && Oobd.focusElement.focus){
+					Oobd.focusElement.focus()
+				}
 				spinner.stop();
 			}
 			// add a new visual element to the page
@@ -493,6 +497,10 @@
 						};
 						cell2.appendChild(feld);
 						$(feld).button();
+						if (typeof obj.opts.focus != 'undefined') {
+							Oobd.focusElement=feld
+						}
+
 						break;
 					case "CheckBox":
 						var feld = document.createElement("input");
