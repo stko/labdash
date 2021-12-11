@@ -19,7 +19,7 @@ import can.interfaces.pcan
 
 def LDCANBus(ldm_instance,port=0, bitrate=500000):
 	# reads the config, if any
-	config = JsonStorage('Interfaces', 'backup', "config.json",
+	config = JsonStorage('LDCANBus', 'backup', "config.json",
 		{
 			'canports' :
 			[
@@ -41,6 +41,10 @@ def LDCANBus(ldm_instance,port=0, bitrate=500000):
 
 def send_can_11b( bus, id,data):
 	message = can.Message(arbitration_id=id, is_extended_id=False, data=data)
+	bus.send(message)
+
+def send_can_29b( bus, id,data):
+	message = can.Message(arbitration_id=id, is_extended_id=True, data=data)
 	bus.send(message)
 
 def rcv_can_11b( bus, can_id,timeout):
