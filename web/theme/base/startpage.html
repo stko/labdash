@@ -24,6 +24,8 @@
 
 	<meta charset="utf-8">
 	<script type="text/javascript" src="/libs/oobd/1/oobd.js"></script>
+	<!-- optional QR-Code support https://github.com/davidshimjs/qrcodejs -->
+	<script type="text/javascript" src="/libs/qrcodejs/1/qrcode.min.js"></script>
 	<style>
 		:invalid {
 		border: 2px solid #ff0000;
@@ -243,7 +245,7 @@ your selection will be saved in the browser)
 						};
 						cell2.appendChild(feld); 
 						break;
-					case "Gauge":
+						case "Gauge":
 						 var feld = document.createElement("meter");
 						feld.setAttribute("min",obj.opts.min); 
 						feld.setAttribute("max",obj.opts.max); 
@@ -262,6 +264,25 @@ your selection will be saved in the browser)
 						};
 						*/
 						cell2.appendChild(feld); 
+						break;
+						case "Qrcode":
+							if (! (QRCode == null)){
+								var feld = document.createElement("div");
+								var qrcode = new QRCode(feld, {
+									text: obj.value,
+									width: obj.opts.size,
+									height: obj.opts.size,
+									colorDark : "#000000",
+									colorLight : "#ffffff",
+									correctLevel : QRCode.CorrectLevel.H
+								});
+								row.oodbupdate = function(input) {
+									qrcode.clear();
+									qrcode.makeCode(input.value);
+								};
+								cell2.appendChild(feld); 
+							}
+						
 						break;
 					}
 				}

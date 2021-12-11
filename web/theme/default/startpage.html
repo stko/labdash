@@ -59,7 +59,8 @@
 	<meta charset="utf-8">
 	<script type="text/javascript" src="/libs/spin/1/spin.js"></script>
 	<script type="text/javascript" src="/libs/oobd/1/oobd.js"></script>
-	<style>
+	<!-- optional QR-Code support https://github.com/davidshimjs/qrcodejs -->
+	<script type="text/javascript" src="/libs/qrcodejs/1/qrcode.min.js"></script>	<style>
 		:invalid {
 			border: 2px solid #ff0000;
 		}
@@ -610,6 +611,25 @@
 						tbl.oodbupdate = function(input) {
 							g1.refresh(parseFloat(input.value));
 						};
+						break;
+						case "Qrcode":
+							if (! (QRCode == null)){
+								var feld = document.createElement("div");
+								var qrcode = new QRCode(feld, {
+									text: obj.value,
+									width: obj.opts.size,
+									height: obj.opts.size,
+									colorDark : "#000000",
+									colorLight : "#ffffff",
+									correctLevel : QRCode.CorrectLevel.H
+								});
+								tbl.oodbupdate = function(input) {
+									qrcode.clear();
+									qrcode.makeCode(input.value);
+								};
+								cell2.appendChild(feld); 
+							}
+						
 						break;
 				}
 			}
