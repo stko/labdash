@@ -62,12 +62,12 @@ class SplPlugin(SplThread):
 					"host": "0.0.0.0",
 					"port": 8000,
 					"secure": False,
-					"openbrowser" : False
+					"openbrowser" : True
 				},
 				'actual_settings': {
 					'theme':'default',
-					'www_root_dir': './web/',
-					'epa_root_dir': './web/examples/'
+					'www_root_dir': '../web/',
+					'epa_root_dir': '../web/examples/'
 				}
 
 			})
