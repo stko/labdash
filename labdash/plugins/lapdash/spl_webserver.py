@@ -66,8 +66,8 @@ class SplPlugin(SplThread):
 				},
 				'actual_settings': {
 					'theme':'default',
-					'www_root_dir': 'web/',
-					'epa_root_dir': 'web/examples/'
+					'www_root_dir': './web/',
+					'epa_root_dir': './web/examples/'
 				}
 
 			})
