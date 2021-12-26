@@ -122,7 +122,7 @@ class SplPlugin(SplThread):
 				script=None
 				# does a manifest file exist?
 				try: 
-					manifest=json.load(open(os.path.join(file_info.path,'manifest')))
+					manifest=json.load(open(os.path.join(file_info.path,'manifest'),encoding='UTF-8'))
 					if 'script' in manifest:
 						potential_source=os.path.join(file_info.path,manifest['script'])
 						if os.path.exists(potential_source):
@@ -242,7 +242,7 @@ class SplPlugin(SplThread):
 						sub_element.text = value
 
 		catalog_xml_string=ET.tostring(ET.ElementTree(root_element),encoding="utf-8",
-										xml_declaration=True, pretty_print=True)
+										xml_declaration=True, pretty_print=True).decode()
 		self.modref.message_handler.queue_event(
 			None, defaults.EPA_CATALOG, catalog_xml_string
 		)
