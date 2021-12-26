@@ -5,6 +5,7 @@
 import sys
 import os
 import can
+from uds import Uds
 from  jsonstorage import JsonStorage
 from datetime import datetime
 import traceback
@@ -25,6 +26,7 @@ def LDCANBus(ldm_instance,port=0, bitrate=500000):
 			[
 				{
 					"bustype": "pcan",
+					"interface": "peak",
 					"channel": "PCAN_USBBUS1",
 				},
 			]
@@ -38,6 +40,40 @@ def LDCANBus(ldm_instance,port=0, bitrate=500000):
 	except Exception as ex:
 		print('Error:', str(ex))
 		return None
+
+'''Wrapper function to bind the UDS connection to the lccan settings
+
+IMPORTANT: To make this work, the can-uds python library need to patched! :
+https://github.com/stko/python-uds/commit/00878336be1be6bffc4a5e5f083f8ed72580e850
+
+'''
+
+
+
+def LDUDS(ldm_instance, port=0, bitrate=500000, resId=0x7E0, reqId=0x7E8):
+	# reads the config, if any
+	config = JsonStorage('LDCANBus', 'backup', "config.json",
+		{
+			'canports' :
+			[
+				{
+					"bustype": "pcan",
+					"interface": "peak",
+					"channel": "PCAN_USBBUS1",
+				},
+			]
+
+		})
+	try:
+		canports=config.read('canports')
+		uds = Uds (resId=resId, reqId=reqId, transportProtocol="CAN", baudrate= bitrate, interface=canports[port]['interface'], device=canports[port]['channel'])
+
+		ldm_instance.add_close_handler(uds.disconnect)
+		return uds
+	except Exception as ex:
+		print('Error:', str(ex))
+		return None
+
 
 def send_can_11b( bus, id,data):
 	message = can.Message(arbitration_id=id, is_extended_id=False, data=data)

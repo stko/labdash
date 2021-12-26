@@ -131,7 +131,9 @@ class LDMClass(metaclass=ABCMeta):
 
 		if data_type=='f':
 			raw =int.from_bytes(message_data_bytes, byteorder='big', signed=False)*mult/div+offset
-			return str(raw)+unit , raw
+			return str(raw)+unit , raw 
+		if data_type=='a':
+			return message_data_bytes.decode("utf-8") 
 		else:
 			return 'unknown data type in format_str' ,None
 
