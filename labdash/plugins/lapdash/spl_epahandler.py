@@ -51,7 +51,7 @@ class SplPlugin(SplThread):
 		# do the plugin specific initialisation first
 
 		self.lock = threading.Lock()
-
+		self.main_script_directory=os.path.abspath( os.path.dirname(sys.argv[0]))
 		self.epas = {}
 		self.instance=None
 		# at last announce the own plugin
@@ -115,9 +115,9 @@ class SplPlugin(SplThread):
 		regex = re.compile(r'^.+.epd$')
 		try:
 			list_subfolders_with_paths = [
-				file_info for file_info in os.scandir(self.actual_settings['epa_root_dir']) if file_info.is_dir() and regex.match(file_info.name) ]
+				file_info for file_info in os.scandir(os.path.join(self.main_script_directory,self.actual_settings['epa_root_dir'])) if file_info.is_dir() and regex.match(file_info.name) ]
 			self.theme_names = [
-				file_info.name for file_info in os.scandir(self.themes_directory_path) if file_info.is_dir() ]
+				file_info.name for file_info in os.scandir(os.path.join(self.main_script_directory,self.themes_directory_path)) if file_info.is_dir() ]
 			for file_info in list_subfolders_with_paths:
 				script=None
 				# does a manifest file exist?
