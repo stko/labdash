@@ -127,7 +127,16 @@ class LDMClass(metaclass=ABCMeta):
 		if bit_pos % 8 == 0  and bit_len % 8 == 0:
 			message_data_bytes=data_bytes[bit_pos//8:bit_pos//8+bit_len//8]
 		else:
-			message_data_bytes=BitArray(data_bytes)[bit_pos:bit_pos+bit_len].bytes
+			message_data_bytes=BitArray(data_bytes)
+			message_data_bytes=message_data_bytes[bit_pos:bit_pos+bit_len]
+			if bit_len % 8 != 0 : # we need to do padding :-(
+				# first we need the numpber of leading padding bits
+				padding_string="0b"+"0"*(8 - (bit_len % 8))
+				padding_bits=BitArray(padding_string)
+				padding_bits.append(message_data_bytes)
+				message_data_bytes=padding_bits.tobytes()
+			else:
+				message_data_bytes=message_data_bytes.tobytes()
 
 		if data_type=='f':
 			raw =int.from_bytes(message_data_bytes, byteorder='big', signed=False)*mult/div+offset
