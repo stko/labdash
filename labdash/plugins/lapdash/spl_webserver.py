@@ -52,7 +52,7 @@ class SplPlugin(SplThread):
 		'''
 
 		self.modref = modref
-
+		self.program_dir = os.path.dirname(__file__)
 		super().__init__(modref.message_handler, self)
 		# reads the config, if any
 		self.config = JsonStorage('webserver', 'backup', "config.json",
@@ -66,8 +66,8 @@ class SplPlugin(SplThread):
 				},
 				'actual_settings': {
 					'theme':'default',
-					'www_root_dir': '../web/',
-					'epa_root_dir': '../web/examples/'
+					'www_root_dir': os.path.join(self.program_dir,'../web/'),
+					'epa_root_dir': os.path.join(self.program_dir,'../web/examples/')
 				}
 
 			})
