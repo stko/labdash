@@ -43,9 +43,12 @@ class SplPlugin(SplThread):
 	def __init__(self, modref):
 		''' inits the plugin
 		'''
+		
+		''' no config needed in this module
 		self.config = JsonStorage('EpaHandler', 'backup', "config.json", {
 			}
 		)
+		'''
 		self.modref = modref
 
 		# do the plugin specific initialisation first
