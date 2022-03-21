@@ -3,3 +3,4 @@ lapdash.code-workspace
 __pycache__
 volumes
 labdash/plugins/company/
+build
