@@ -547,8 +547,7 @@
 						var deptList = new Array(unsortedList.length);
 						for (var prop in unsortedList) {
 							if (unsortedList.hasOwnProperty(prop)) {
-								// or if (Object.prototype.hasOwnProperty.call(obj,prop)) for safety...
-								deptList[parseInt(prop) - 1] = unsortedList[prop];
+								deptList[parseInt(prop)] = unsortedList[prop];
 							}
 						}
 						for (i = 0; i < deptList.length; i++) {

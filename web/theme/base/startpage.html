@@ -216,15 +216,15 @@ your selection will be saved in the browser)
 							Oobd.sendUpdateReq(row.oobd.command, row.oobd.optid, flag, 0);
 						};
 						cell2.appendChild(feld); 
-						break;					case "Combo":
+						break;
+					case "Combo":
 						 var feld = document.createElement("select");
 						var opt = null;
 						var unsortedList = obj.opts.content;
 						var deptList= new Array(unsortedList.length);
 						for (var prop in unsortedList) {
 							if (unsortedList.hasOwnProperty(prop)) { 
-								// or if (Object.prototype.hasOwnProperty.call(obj,prop)) for safety...
-								deptList[parseInt(prop)-1]=unsortedList[prop];
+								deptList[parseInt(prop)] = unsortedList[prop];
 							}
 						}
 						for(i = 0; i< deptList.length; i++) { 
