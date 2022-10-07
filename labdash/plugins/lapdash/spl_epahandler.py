@@ -117,8 +117,10 @@ class SplPlugin(SplThread):
 		self.themes_directory_path=os.path.join(self.actual_settings['www_root_dir'],'theme')
 		regex = re.compile(r'^.+.epd$')
 		try:
-			list_subfolders_with_paths = [
-				file_info for file_info in os.scandir(os.path.join(self.main_script_directory,self.actual_settings['epa_root_dir'])) if file_info.is_dir() and regex.match(file_info.name) ]
+			list_subfolders_with_paths=[]
+			for epa_root_dir in self.actual_settings['epa_root_dir']:
+				list_subfolders_with_paths.extend( [
+					file_info for file_info in os.scandir(os.path.join(self.main_script_directory,epa_root_dir)) if file_info.is_dir() and regex.match(file_info.name) ])
 			self.theme_names = [
 				file_info.name for file_info in os.scandir(os.path.join(self.main_script_directory,self.themes_directory_path)) if file_info.is_dir() ]
 			for file_info in list_subfolders_with_paths:
