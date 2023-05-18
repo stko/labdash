@@ -90,6 +90,8 @@ class SplPlugin(SplThread):
 		self.sockets = Sockets(self.app)
 		self.ws_clients = []  # my actual browser connections
 		self.actual_file_id=None
+		self.epa_catalog_xml_string = None
+		self.eol_catalog_xml_string = None
 		self.awaiting_initial_content_list=True
 		self.modref.message_handler.add_event_handler(
 			'webserver', 0, self.event_listener)
@@ -114,6 +116,17 @@ class SplPlugin(SplThread):
 
 			response = self.app.response_class(
 			response=self.epa_catalog_xml_string,
+			status=200,
+			headers=headers,
+			mimetype='application/xml'
+			)
+			return response
+
+		@self.app.route('/eol/',methods=['GET', 'POST'])
+		def index_eol():
+			headers=None
+			response = self.app.response_class(
+			response=self.eol_catalog_xml_string,
 			status=200,
 			headers=headers,
 			mimetype='application/xml'
@@ -258,7 +271,16 @@ class SplPlugin(SplThread):
 		if queue_event.type == defaults.EPA_CATALOG:
 			self.epa_catalog_xml_string=queue_event.data
 			# we need to start the server, if the initial catalog is available
-			if self.awaiting_initial_content_list:
+			if self.epa_catalog_xml_string and self.eol_catalog_xml_string and self.awaiting_initial_content_list:
+				self.awaiting_initial_content_list=False
+			return None  # no futher handling of this event
+		if queue_event.type == defaults.EPA_DIRECTORY:
+			self.epa_directoy=queue_event.data
+			return None  # no futher handling of this event
+		if queue_event.type == defaults.EOL_CATALOG:
+			self.eol_catalog_xml_string=queue_event.data
+			# we need to start the server, if the initial catalog is available
+			if self.epa_catalog_xml_string and self.eol_catalog_xml_string and self.awaiting_initial_content_list:
 				self.awaiting_initial_content_list=False
 			return None  # no futher handling of this event
 		if queue_event.type == defaults.EPA_DIRECTORY:
@@ -286,6 +308,12 @@ class SplPlugin(SplThread):
 			## read the epa dir with the actual settings
 			self.modref.message_handler.queue_event(
 				None, defaults.EPA_LOADDIR, {
+					'actual_settings': self.config.read('actual_settings')
+				}
+			)
+			## read the eol dir with the actual settings
+			self.modref.message_handler.queue_event(
+				None, defaults.EOL_LOADDIR, {
 					'actual_settings': self.config.read('actual_settings')
 				}
 			)

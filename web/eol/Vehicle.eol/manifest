@@ -1,0 +1,13 @@
+{
+  "title": "Vehicle EOL",
+  "description": "LabDash demo for a Vehicle EOL Test",
+  "version": "1.0",
+  "copyright": "GPLV2",
+  "security": "public",
+  "date": "18.05.2023",
+  "author" : "The LabDash Team",
+  "url": "github.com/stko/labdash",
+  "email": "info@oobd.org",
+  "phone": "+49-012345678",
+  "screenshot" : "screenshot.png"
+}
