@@ -123,7 +123,7 @@ class SplPlugin(SplThread):
 			return response
 
 		@self.app.route('/eol/',methods=['GET', 'POST'])
-		def index_eol():
+		def init_eol():
 			headers=None
 			response = self.app.response_class(
 			response=self.eol_catalog_xml_string,
@@ -132,6 +132,29 @@ class SplPlugin(SplThread):
 			mimetype='application/xml'
 			)
 			return response
+
+
+		@self.app.route('/eol/<path:path>')
+		def handle_eol(path):
+			elements=path.split('/') # first we split the path into pieces
+			if not elements: # empty path
+				return self.app.response_class(
+				response="<h2>No EOL reference in URL</h2>",
+				status=404
+			)
+			if len(elements)==1: # this is a request to load a new EOL
+				if not elements[0] in self.eol_directory:
+					return self.app.response_class(
+						response="<h2>Unknown EOL reference in URL</h2>",
+						status=404
+					)
+				self.actual_file_id=elements[0]
+				eol_info=self.eol_directory[elements[0]]
+				if 'html' in eol_info: # does this package has its own main html page?
+					return send_from_directory(eol_info['path'], eol_info['html'])
+				else:
+					return send_from_directory(os.path.join(self.config.read('actual_settings')['www_root_dir'],'theme',self.theme), 'startpage_eol.html')
+
 
 		@self.app.route('/libs/<path:path>')
 		def send_libs(path):
@@ -146,13 +169,13 @@ class SplPlugin(SplThread):
 				status=404
 			)
 			if len(elements)==1: # this is a request to load a new EPA
-				if not elements[0] in self.epa_directoy:
+				if not elements[0] in self.epa_directory:
 					return self.app.response_class(
 						response="<h2>Unknown EPA reference in URL</h2>",
 						status=404
 					)
 				self.actual_file_id=elements[0]
-				epa_info=self.epa_directoy[elements[0]]
+				epa_info=self.epa_directory[elements[0]]
 				if 'html' in epa_info: # does this package has its own main html page?
 					return send_from_directory(epa_info['path'], epa_info['html'])
 				else:
@@ -160,7 +183,7 @@ class SplPlugin(SplThread):
 
 
 			# we serve the file from within an epa directory
-			return send_from_directory(self.epa_directoy[elements[0]]['path'], '/'.join(elements[1:]))
+			return send_from_directory(self.epa_directory[elements[0]]['path'], '/'.join(elements[1:]))
 
 		@self.app.route('/theme/<theme>/<path:path>')
 		def send_theme(theme,path):
@@ -275,7 +298,7 @@ class SplPlugin(SplThread):
 				self.awaiting_initial_content_list=False
 			return None  # no futher handling of this event
 		if queue_event.type == defaults.EPA_DIRECTORY:
-			self.epa_directoy=queue_event.data
+			self.epa_directory=queue_event.data
 			return None  # no futher handling of this event
 		if queue_event.type == defaults.EOL_CATALOG:
 			self.eol_catalog_xml_string=queue_event.data
@@ -283,8 +306,8 @@ class SplPlugin(SplThread):
 			if self.epa_catalog_xml_string and self.eol_catalog_xml_string and self.awaiting_initial_content_list:
 				self.awaiting_initial_content_list=False
 			return None  # no futher handling of this event
-		if queue_event.type == defaults.EPA_DIRECTORY:
-			self.epa_directoy=queue_event.data
+		if queue_event.type == defaults.EOL_DIRECTORY:
+			self.eol_directory=queue_event.data
 			return None  # no futher handling of this event
 		# for further pocessing, do not forget to return the queue event
 		return queue_event

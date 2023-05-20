@@ -215,7 +215,7 @@ class SplPlugin(SplThread):
 		for eol_info in self.eols.values():
 			element_node = ET.SubElement(root_element ,"script")
 			sub_element =ET.SubElement(element_node ,"fileid")
-			sub_element.text = '/ld/'+eol_info['file_id']
+			sub_element.text = '/eol/'+eol_info['file_id']
 
 			sub_element =ET.SubElement(element_node ,"filename")
 			sub_element.text = eol_info['path']
