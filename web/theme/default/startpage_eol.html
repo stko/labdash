@@ -43,7 +43,10 @@
 	<link rel="stylesheet" href="/libs/jqwidgets/3.8.2/styles/jqx.base.css" type="text/css">
 	<script type="text/javascript" src="/libs/jqwidgets/3.8.2/jqxcore.js"></script>
 
-
+	<!-- jstree https://www.jstree.com/ -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
+	<!---->
 	<meta content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
 	<meta name="msapplication-tap-highlight" content="no" />
 	<link rel="stylesheet" type="text/css" href="/theme/default/css/style.css" />
@@ -96,9 +99,17 @@
 	</div>
 		<div id="sidebar" class="sidebar">
 			<!-- Sidebar content goes here -->
-			<p><a href="https://www.w3schools.com" target="iframe_a">W3Schools.com</a></p>
-			<p><a href="/ld/VUlDcmVhdGlvbi5lcGQ=" target="iframe_a">UI Test</a></p>
-			<p><a href="https://wiki.apps.mt-technology.de/" target="iframe_a">Wiki</a></p>
+			<ul>
+				<li data-jstree='{"opened":true,"selected":true}'>Root
+					<ul>
+					  <li data-jstree='{}'><a href="/ld/VUlDcmVhdGlvbi5lcGQ=" target="iframe_a">UI Test</a></li>
+					  <li data-jstree='{"icon":"//jstree.com/tree.png"}'>
+						Child</li>
+					  <li data-jstree='{"icon":"glyphicon glyphicon-leaf"}'>
+						Child</li>
+					</ul>
+				  </li>
+			  </ul>
 
 		</div>
 
@@ -297,6 +308,8 @@
 						}
 					});
 				};
+				$('#sidebar').jstree(); 
+
 				Eol.start();
 			});
 
