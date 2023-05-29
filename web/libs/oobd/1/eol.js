@@ -299,21 +299,10 @@ if (typeof Eol == "undefined") {
 					console.log("data " + rawMsg.data); // this is the full message
 					try {
 						var obj = JSON.parse(rawMsg.data);
-						if (obj.type == "VALUE") {
-							var owner = obj.config.to.name;
-							for (i = 0; i < Eol.visualizers.length; ++i) { // search for the real id of a function owner
-								if (Eol.visualizers[i].command == owner) {
-									if (Eol.visualizers[i].object.eol.value != obj.config.value) {
-										if (Eol.getUpdateFlag(Eol.visualizers[i], Eol.FLAG_LOG)) {
-											Eol.writeString(new Date().toLocaleTimeString() + "\t" + Eol.visualizers[i].tooltip + "\t" + Eol.visualizers[i].object.eol.value + "\t" + obj.config.value + "\n", "");
-										}
-									}
-									Eol.visualizers[i].value = obj.config.value;
-									Eol.visualizers[i].object.eol.value = obj.config.value;
-									Eol.visualizers[i].object.oodbupdate(obj.config);
-								}
-							}
-							Eol._timerTick();
+						if (obj.type == "EOLLIST") {
+							this.newList(obj.config.title)
+							obj.config.items.forEach(element => this.addListElement(element))
+							this.listDone()
 						}
 
 						if (obj.type == "WSCONNECT") {
@@ -387,14 +376,18 @@ if (typeof Eol == "undefined") {
 			} else {
 				window.alert("Socket not supported");
 			}
-		},
-		add: function (id, initialValue) {
-			var obj = document.getElementById(id);
-			this.addObject(obj, initialValue);
-		},
-
-		splitID: function (id) { //splits the id into type and command
-			return id.match(/eol_(\w+)-(.+)/);
+			this.newList("super End of Line")
+			this.addListElement({
+				id:"4711",
+				parent:null,
+				text:"master"
+			})
+			this.addListElement({
+				id:"4712",
+				parent:"4711",
+				text:"bla"
+			})
+			this.listDone()
 		},
 
 		parseXml: function (xmlText) {
@@ -477,41 +470,6 @@ if (typeof Eol == "undefined") {
 			}
 
 		},
-
-		addObject: function (obj, initialValue) {
-			if (obj.getAttribute("eol:fc") == null) {
-				console.log("Error: Object with id " + obj.getAttribute("id") + " does not contain a functioncall (fc) attribut!");
-			} else {
-				obj.eol = new Object();
-				obj.eol.value = initialValue;
-				thisElement = new Object();
-				thisElement["name"] = obj.getAttribute("id");
-				thisElement["value"] = initialValue;
-				thisElement["type"] = obj.getAttribute("eol:type");
-				thisElement["command"] = obj.getAttribute("eol:fc");
-				thisElement["updevents"] = obj.getAttribute("eol:updevents");
-				thisElement["tooltip"] = obj.getAttribute("eol:tooltip");
-				var params = obj.getAttribute("eol:fc").match(/(\w+):(.+)/)
-				if (params != null && params.length > 2) {
-					thisElement["optid"] = params[2];
-				} else {
-					thisElement["optid"] = "";
-				}
-				thisElement["object"] = obj;
-				obj.eol.command = thisElement["command"];
-				obj.eol.optid = thisElement["optid"];
-				obj.eol.visualizer = thisElement;
-				Eol.visualizers.push(thisElement);
-				console.log("add object as visualizer:" + thisElement["command"]);
-				if (obj.getAttribute("eol:click") == "yes") {
-					obj.addEventListener("click", function () {
-						console.log("clicked command " + this.eol.command + "with value" + this.eol.value);
-						//							Eol.connection.send(JSON.stringify({"name": this.eol.command ,"optid": this.eol.optid , "value": this.eol.value ,"updType":1}));
-						Eol.sendUpdateReq(this.eol.command, this.eol.optid, this.eol.value, 0);
-					});
-				}
-			}
-		}
 
 	}
 

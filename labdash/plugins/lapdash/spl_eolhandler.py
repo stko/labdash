@@ -96,6 +96,23 @@ class SplPlugin(SplThread):
 		self.modref.message_handler.queue_event(None, defaults.MSG_SOCKET_MSG, {
 		'type': defaults.MSG_SOCKET_WRITESTRING, 'config': {'data':'eol'}})
 
+		self.modref.message_handler.queue_event(None, defaults.MSG_SOCKET_MSG, {
+		'type': defaults.CM_EOL_EOLLIST, 'config': {
+			'title': "EOL from Server",
+			"items":[
+				{
+					"id":"4711",
+					"parent":None,
+					"text":"master"
+				},
+				{
+					"id":"4712",
+					"parent":"4711",
+					"text":"bla"
+				}
+			]
+		}})
+
 
 		while self.runFlag:
 			act_secs = int(time.time())
@@ -133,6 +150,10 @@ class SplPlugin(SplThread):
 						if os.path.exists(potential_source):
 							procedures=manifest['procedures']
 					else:
+
+
+						hier müsste jetzt die default EOL-python class Datei identifiuert werden
+
 						potential_source=os.path.join(file_info.path,'procedures.yaml')
 						if os.path.exists(potential_source):
 							procedures='procedures.yaml'

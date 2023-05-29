@@ -154,7 +154,10 @@ class SplPlugin(SplThread):
 					return send_from_directory(eol_info['path'], eol_info['html'])
 				else:
 					return send_from_directory(os.path.join(self.config.read('actual_settings')['www_root_dir'],'theme',self.theme), 'startpage_eol.html')
-
+			return self.app.response_class(
+				response="<h2>Wrong parameters in handle_eol</h2>",
+				status=404
+			)
 
 		@self.app.route('/libs/<path:path>')
 		def send_libs(path):
@@ -234,6 +237,9 @@ class SplPlugin(SplThread):
 			self.modref.message_handler.queue_event(
 				None, defaults.EPA_LOAD_EPA, self.actual_file_id
 			)
+			self.modref.message_handler.queue_event(
+				None, defaults.EOL_LOAD_EOL, self.actual_file_id
+			)
 
 
 		return user
@@ -289,7 +295,10 @@ class SplPlugin(SplThread):
 			json_message=json.dumps(message)
 			for user in self.ws_clients:
 				if queue_event.user == None or queue_event.user == user.name:
-					user.ws.send(json_message)
+					if not user.ws.closed:
+						user.ws.send(json_message)
+					else:
+						self.ws_clients.remove(user)
 			return None  # no futher handling of this event
 		if queue_event.type == defaults.EPA_CATALOG:
 			self.epa_catalog_xml_string=queue_event.data
