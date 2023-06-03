@@ -95,24 +95,29 @@
 	<div id="header" class="header">
 		<a target="_blank" href="http://oobd.org"><img src="/libs/images/oobd_logo_tron.png" width="100"></a>
 		<button id="indexbutton" onclick="window.location = '/eol';">All EOL Tests</button>
+		<br/>
 		<h2 id="headline"></h2>
 
 	</div>
 		<div id="sidebar" class="sidebar">
 			<!-- Sidebar content goes here -->
-			<ul id="sidebar-list">
-				<li data-jstree='{"opened":true,"selected":true}'>Root
-					<ul>
-					  <li data-jstree='{}'><a href="/ld/VUlDcmVhdGlvbi5lcGQ=" target="iframe_a">UI Test</a></li>
-					  <!-- to follow url, we've to : https://stackoverflow.com/a/25625738-->
-					  <li data-jstree='{"icon":"//jstree.com/tree.png"}'>
-						Child</li>
-					  <li data-jstree='{"icon":"glyphicon glyphicon-leaf"}'>
-						Child</li>
-					</ul>
-				  </li>
-			  </ul>
-
+			<button id="eolrewind">Rewind</button>
+			<button id="eolplay">Play</button>
+			<button id="eolstop">Stop</button>
+			<div id="sidebar-tree" class="sidebar-tree">
+				<ul id="sidebar-list">
+					<li data-jstree='{"opened":true,"selected":true}'>Root
+						<ul>
+						<li data-jstree='{}'><a href="/ld/VUlDcmVhdGlvbi5lcGQ=" target="iframe_a">UI Test</a></li>
+						<!-- to follow url, we've to : https://stackoverflow.com/a/25625738-->
+						<li data-jstree='{"icon":"//jstree.com/tree.png"}'>
+							Child</li>
+						<li data-jstree='{"icon":"glyphicon glyphicon-leaf"}'>
+							Child</li>
+						</ul>
+					</li>
+				</ul>
+			</div>
 		</div>
 
 		<div id="content" class="content">
@@ -176,6 +181,39 @@
 					icons: {
 						primary: "ui-icon-disk"
 					}
+				});
+				$("#eolrewind").button({
+					icons: {
+						primary: "ui-icon-seek-first"
+					},
+					text: "rewind"
+				});
+				$("#eolplay").button({
+					icons: {
+						primary: "ui-icon-play"
+					},
+					text: "play",
+					click: function () {
+						var data = $("#sidebar-tree").jstree()
+						console.log(data)
+						}
+				});
+				$("#eolplay").click(function() {
+					var tree=$("#sidebar-tree").jstree()
+					var data = tree.get_selected(true)
+					console.log(data)
+					if (data.length==1){
+						//data=tree.get_checked_descendants(data[0].id)
+						data=tree.get_checked(true)
+						console.log(data)
+					}
+
+				});
+				$("#eolstop").button({
+					icons: {
+						primary: "ui-icon-stop"
+					},
+					text: "stop"
 				});
 				$("#radioset").buttonset();
 				$("#dialog").dialog({
@@ -251,7 +289,12 @@
 					if (Eol.focusElement && Eol.focusElement.focus) {
 						Eol.focusElement.focus()
 					}
-					$('#sidebar').jstree({
+					$('#sidebar-tree').jstree({
+						'checkbox': {       
+						'three_state' : false, 
+						'whole_node' : false,//Used to check/uncheck node only if clicked on checkbox icon, and not on the whole node including label
+						'tie_selection' : false
+    				},
 					"plugins" : [ "themes", "html_data", "checkbox", "sort", "ui" ]
 				}); 
 				}
@@ -266,8 +309,9 @@
 					}
 					var li = document.createElement('li');
 					li.innerText = obj.text;
+					li.data={eolid: obj.id}
 					// li.classList.add("OOBD");
-					// li.setAttribute("oobd:fc", obj.name);
+					li.setAttribute("eolid", obj.id);
 					parent.appendChild(li);
 					obj.domElement=li
 					Eol.listElements[obj.id]=obj

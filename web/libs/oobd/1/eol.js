@@ -316,23 +316,6 @@ if (typeof Eol == "undefined") {
 							Eol._handleWriteString(obj.config);
 						}
 
-						if (obj.type == "PAGE") {
-							if (typeof Eol.openPage != "undefined" && typeof obj.config.name != "undefined" && obj.config.name.length > 0) {
-								console.log("try to OpenPage");
-								Eol.openPage(obj.config.name);
-								// as OpenPages resets the list of available visualizers also for the Dashboard, we have to redraw the dashboard after each new page
-								if (typeof Eol.fillDashboard != "undefined") {
-									Eol.fillDashboard();
-								}
-							}
-						}
-
-						if (obj.type == "VISUALIZE") {
-							if (typeof Eol.visualize != "undefined") {
-								console.log("try to Visualize");
-								Eol.visualize(obj.config);
-							}
-						}
 						if (obj.type == "PARAM") {
 							if (typeof obj.config.PARAM.confirm != "undefined") { // do we need a yes/no dialog or a value input?
 								if (typeof Eol.confirm != "undefined") {
@@ -360,14 +343,6 @@ if (typeof Eol == "undefined") {
 								window.alert(obj.config.DIALOG_INFO.tooltip);
 							}
 						}
-
-						if (obj.type == "PAGEDONE") {
-							if (typeof Eol.pageDone != "undefined") {
-								console.log("Page done");
-								Eol.pageDone();
-							}
-						}
-
 
 					} catch (err) {
 						console.log("received msg Error " + err.message);
