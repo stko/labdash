@@ -300,9 +300,9 @@ if (typeof Eol == "undefined") {
 					try {
 						var obj = JSON.parse(rawMsg.data);
 						if (obj.type == "EOLLIST") {
-							this.newList(obj.config.title)
-							obj.config.items.forEach(element => this.addListElement(element))
-							this.listDone()
+							Eol.newList(obj.config.title)
+							obj.config.items.forEach(element => Eol.addListElement(element))
+							Eol.listDone()
 						}
 
 						if (obj.type == "WSCONNECT") {
@@ -376,18 +376,6 @@ if (typeof Eol == "undefined") {
 			} else {
 				window.alert("Socket not supported");
 			}
-			this.newList("super End of Line")
-			this.addListElement({
-				id:"4711",
-				parent:null,
-				text:"master"
-			})
-			this.addListElement({
-				id:"4712",
-				parent:"4711",
-				text:"bla"
-			})
-			this.listDone()
 		},
 
 		parseXml: function (xmlText) {

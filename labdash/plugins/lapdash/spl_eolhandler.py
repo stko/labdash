@@ -141,19 +141,27 @@ class SplPlugin(SplThread):
 			self.theme_names = [
 				file_info.name for file_info in os.scandir(os.path.join(self.main_script_directory,self.themes_directory_path)) if file_info.is_dir() ]
 			for file_info in list_subfolders_with_paths:
+				script=None
 				procedures=None
 				# does a manifest file exist?
 				try: 
 					manifest=json.load(open(os.path.join(file_info.path,'manifest'),encoding='UTF-8'))
+					if 'script' in manifest:
+						script_path=os.path.join(file_info.path,manifest['script'])
+						if os.path.exists(script_path):
+							script=manifest['script']
+					else:
+						script_path=os.path.join(file_info.path,'eolprocessor.py')
+						if os.path.exists(script_path):
+							script='eolprocessor.py'
+					if not script:
+						logger.warning(f'no (default) script given in {file_info.path}')
+						continue
 					if 'procedures' in manifest:
 						potential_source=os.path.join(file_info.path,manifest['procedures'])
 						if os.path.exists(potential_source):
 							procedures=manifest['procedures']
 					else:
-
-
-						hier müsste jetzt die default EOL-python class Datei identifiuert werden
-
 						potential_source=os.path.join(file_info.path,'procedures.yaml')
 						if os.path.exists(potential_source):
 							procedures='procedures.yaml'
@@ -169,8 +177,9 @@ class SplPlugin(SplThread):
 					'file_id' : file_id,
 					'manifest': manifest,
 					'path' : file_info.path,
+					'script': script,
 					'procedures': procedures,
-					'full_path_name' : os.path.join(file_info.path,procedures)
+					'full_path_name' : os.path.join(file_info.path,script)
 					}
 			
 			self.modref.message_handler.queue_event(
@@ -195,7 +204,7 @@ class SplPlugin(SplThread):
 				self.instance.stop()
 				self.instance = None
 			module_spec.loader.exec_module(my_module)
-			self.instance = my_module.LDM(self.modref.message_handler)
+			self.instance = my_module.EOL(self.modref.message_handler)
 			self.eols[eol_info['file_id']]['instance'] =self.instance # ? I don't know for that might be used later, but I just keep it in :-)
 			self.instance.run()
 		except Exception as e:
