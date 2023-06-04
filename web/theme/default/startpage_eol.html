@@ -44,8 +44,11 @@
 	<script type="text/javascript" src="/libs/jqwidgets/3.8.2/jqxcore.js"></script>
 
 	<!-- jstree https://www.jstree.com/ -->
+	<!-- the icons https://getbootstrap.com/docs/3.3/components/#glyphicons
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
+		-->
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.5/jstree.min.js"></script>
 	<!---->
 	<meta content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
 	<meta name="msapplication-tap-highlight" content="no" />
@@ -199,12 +202,12 @@
 						}
 				});
 				$("#eolplay").click(function() {
-					var tree=$("#sidebar-tree").jstree()
+					var tree=$("#sidebar-tree").jstree(true)
 					var data = tree.get_selected(true)
 					console.log(data)
 					if (data.length==1){
-						//data=tree.get_checked_descendants(data[0].id)
-						data=tree.get_checked(true)
+						data=tree.get_checked_descendants(data[0].id)
+						//data=tree.get_checked_descendants(true)
 						console.log(data)
 					}
 
@@ -312,6 +315,8 @@
 					li.data={eolid: obj.id}
 					// li.classList.add("OOBD");
 					li.setAttribute("eolid", obj.id);
+					//li.setAttribute("data-jstree",'{"icon":"//jstree.com/tree.png"}')
+					//li.setAttribute("data-jstree",'{"icon":"glyphicon glyphicon-wrench"}')
 					parent.appendChild(li);
 					obj.domElement=li
 					Eol.listElements[obj.id]=obj
