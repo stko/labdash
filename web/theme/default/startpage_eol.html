@@ -45,8 +45,8 @@
 
 	<!-- jstree https://www.jstree.com/ -->
 	<!-- the icons https://getbootstrap.com/docs/3.3/components/#glyphicons
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
-		-->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
+	-->
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.5/jstree.min.js"></script>
 	<!---->
@@ -98,342 +98,382 @@
 	<div id="header" class="header">
 		<a target="_blank" href="http://oobd.org"><img src="/libs/images/oobd_logo_tron.png" width="100"></a>
 		<button id="indexbutton" onclick="window.location = '/eol';">All EOL Tests</button>
-		<br/>
+		<br />
 		<h2 id="headline"></h2>
 
 	</div>
-		<div id="sidebar" class="sidebar">
-			<!-- Sidebar content goes here -->
-			<button id="eolrewind">Rewind</button>
-			<button id="eolplay">Play</button>
-			<button id="eolstop">Stop</button>
-			<div id="sidebar-tree" class="sidebar-tree">
-				<ul id="sidebar-list">
-					<li data-jstree='{"opened":true,"selected":true}'>Root
-						<ul>
+	<div id="sidebar" class="sidebar">
+		<!-- Sidebar content goes here -->
+		<button id="eolrewind">Rewind</button>
+		<button id="eolplay">Play</button>
+		<button id="eolstop">Stop</button>
+		<div id="sidebar-tree" class="sidebar-tree">
+			<ul id="sidebar-list">
+				<li data-jstree='{"opened":true,"selected":true}'>Root
+					<ul>
 						<li data-jstree='{}'><a href="/ld/VUlDcmVhdGlvbi5lcGQ=" target="iframe_a">UI Test</a></li>
 						<!-- to follow url, we've to : https://stackoverflow.com/a/25625738-->
 						<li data-jstree='{"icon":"//jstree.com/tree.png"}'>
 							Child</li>
 						<li data-jstree='{"icon":"glyphicon glyphicon-leaf"}'>
 							Child</li>
-						</ul>
-					</li>
-				</ul>
-			</div>
+					</ul>
+				</li>
+			</ul>
 		</div>
+	</div>
 
-		<div id="content" class="content">
-			<iframe  name="iframe_a" title="Iframe Example"   style="resize: vertical;height:200px;width:100%;border:grey;overflow:hidden;"></iframe>
+	<div id="content" class="content">
+		<iframe name="iframe_a" title="Iframe Example"
+			style="resize: vertical;height:200px;width:100%;border:grey;overflow:hidden;"></iframe>
+	</div>
+
+	<div id="footer" class="footer">
+		<div id="toolbar" class="ui-widget-header ui-corner-all">
+			<button id="outputclear" onclick='$("#textoutput").val("");'>Clear</button>
+			<input type="checkbox" id="outputlog" checked><label for="outputlog">Log</label>
+			<button id="outputsave" onclick="return saveOutput('output.txt');">Save</button>
 		</div>
+		<textarea id="textoutput"></textarea>
+		<p />
+		<table id="files">
+		</table>
+	</div>
+	<div id="dialog-modal" style="display: none;"></div>
+	<div id="input-modal" style="display:none;">
+		<div id="input-text"></div>
+		<!-- <form> -->
+		<input name="input-input" type="text" value="First name" class="text" />
+		<!-- </form> -->
+	</div>
 
-		<div id="footer" class="footer">
-			<div id="toolbar" class="ui-widget-header ui-corner-all">
-				<button id="outputclear" onclick='$("#textoutput").val("");'>Clear</button>
-				<input type="checkbox" id="outputlog" checked><label for="outputlog">Log</label>
-				<button id="outputsave" onclick="return saveOutput('output.txt');">Save</button>
-			</div>
-			<textarea id="textoutput"></textarea>
-			<p />
-			<table id="files">
-			</table>
-		</div>
-		<div id="dialog-modal" style="display: none;"></div>
-		<div id="input-modal" style="display:none;">
-			<div id="input-text"></div>
-			<!-- <form> -->
-			<input name="input-input" type="text" value="First name" class="text" />
-			<!-- </form> -->
-		</div>
-
-		<script>
-			$(function () { //DOM Ready
-				// your page initialization code here
-				// the DOM will be available here
-				//define here what to do if a text comes in to be shown
+	<script>
+		$(function () { //DOM Ready
+			// your page initialization code here
+			// the DOM will be available here
+			//define here what to do if a text comes in to be shown
 
 
-				$("#tabs").tabs();
-				$("#accordion").accordion();
-				$("#indexbutton").button({
-					icons: {
-						primary: "ui-icon-home"
-					}
-				});
-				$("#button").button({
-					icons: {
-						primary: "ui-icon-refresh"
-					}
-				});
-				$("#check").button({
-					icons: {
-						primary: "ui-icon-clock"
-					}
-				});
-				$("#outputclear").button({
-					icons: {
-						primary: "ui-icon-trash"
-					}
-				});
-				$("#outputlog").button({
-					icons: {
-						primary: "ui-icon-pencil"
-					}
-				});
-				$("#outputsave").button({
-					icons: {
-						primary: "ui-icon-disk"
-					}
-				});
-				$("#eolrewind").button({
-					icons: {
-						primary: "ui-icon-seek-first"
-					},
-					text: "rewind"
-				});
-				$("#eolplay").button({
-					icons: {
-						primary: "ui-icon-play"
-					},
-					text: "play",
-					click: function () {
-						var data = $("#sidebar-tree").jstree()
-						console.log(data)
-						}
-				});
-				$("#eolplay").click(function() {
-					var tree=$("#sidebar-tree").jstree(true)
-					var data = tree.get_selected(true)
-					console.log(data)
-					if (data.length==1){
-						data=tree.get_checked_descendants(data[0].id)
-						//data=tree.get_checked_descendants(true)
-						console.log(data)
-					}
-
-				});
-				$("#eolstop").button({
-					icons: {
-						primary: "ui-icon-stop"
-					},
-					text: "stop"
-				});
-				$("#radioset").buttonset();
-				$("#dialog").dialog({
-					autoOpen: false,
-					width: 400,
-					buttons: [{
-						text: "Ok",
-						click: function () {
-							$(this).dialog("close");
-						}
-					}, {
-						text: "Cancel",
-						click: function () {
-							$(this).dialog("close");
-						}
-					}]
-				});
-				// Link to open the dialog
-				$("#dialog-link").click(function (event) {
-					$("#dialog").dialog("open");
-					event.preventDefault();
-				});
-				$("#datepicker").datepicker({
-					inline: true
-				});
-				$("#slider").slider({
-					range: true,
-					values: [17, 67]
-				});
-				$("#progressbar").progressbar({
-					value: 20
-				});
-				$("#menu").menu();
-				$("#tooltip").tooltip();
-				$("#selectmenu").selectmenu();
-				// Hover states on the static widgets
-				$("#dialog-link, #icons li").hover(
-					function () {
-						$(this).addClass("ui-state-hover");
-					},
-					function () {
-						$(this).removeClass("ui-state-hover");
-					}
-				);
-
-				Eol.writeString = function addText(text, cmd) {
-					switch (cmd) {
-						case "clear":
-							document.getElementById("textoutput").value = "";
-							break;
-						case "save":
-							saveOutput(text);
-							break;
-						default:
-							if (document.getElementById("outputlog").checked == true) {
-								document.getElementById("textoutput").value += text;
-							}
-							break;
-					}
+			$("#tabs").tabs();
+			$("#accordion").accordion();
+			$("#indexbutton").button({
+				icons: {
+					primary: "ui-icon-home"
 				}
-				// initialize a new OOBD EOL list to be shown
-				Eol.newList = function newList(text) {
-					window.document.title = text;
-					Eol.focusElement = null
-					Eol.listElements= []
-					$("#headline").text(text);
-					var ul = document.getElementById("sidebar-list");
-					while(ul.firstChild) ul.removeChild(ul.firstChild);
-					
-				}
-				// list load finished
-				Eol.listDone = function listDone() {
-					if (Eol.focusElement && Eol.focusElement.focus) {
-						Eol.focusElement.focus()
-					}
-					$('#sidebar-tree').jstree({
-						'checkbox': {       
-						'three_state' : false, 
-						'whole_node' : false,//Used to check/uncheck node only if clicked on checkbox icon, and not on the whole node including label
-						'tie_selection' : false
-    				},
-					"plugins" : [ "themes", "html_data", "checkbox", "sort", "ui" ]
-				}); 
-				}
-				// add a new list element to the list
-				Eol.addListElement = function addListElement(obj) {
-					var parent=document.getElementById("sidebar-list") // take the list root as start point
-					if (obj.parent){ // is it a subnode, then we lookup its parent first
-						parent=Eol.listElements[obj.parent].domElement
-						var ul = document.createElement('ul')
-						parent.appendChild(ul);
-						parent=ul
-					}
-					var li = document.createElement('li');
-					li.innerText = obj.text;
-					li.data={eolid: obj.id}
-					// li.classList.add("OOBD");
-					li.setAttribute("eolid", obj.id);
-					//li.setAttribute("data-jstree",'{"icon":"//jstree.com/tree.png"}')
-					//li.setAttribute("data-jstree",'{"icon":"glyphicon glyphicon-wrench"}')
-					parent.appendChild(li);
-					obj.domElement=li
-					Eol.listElements[obj.id]=obj
-				}
-
-				// define own alert dialog
-				Eol.alert = function (obj) {
-					$("#dialog-modal").html(obj.DIALOG_INFO.tooltip);
-					$("#dialog-modal").dialog({
-						title: obj.DIALOG_INFO.title,
-						width: 600,
-						height: 400,
-						buttons: {
-							"OK": function () {
-								$(this).dialog('close');
-								Eol.connection.send(JSON.stringify({ "type": "PARAM", "answer": "true" }));
-							}
-						}
-					});
-				};
-				// define own input dialog
-				Eol.prompt = function (obj) {
-					$("#input-modal").dialog({
-						open: function (event, ui) {
-							var mydiv = $("#input-modal").find('#input-text').html(obj.PARAM.text);
-							$("#input-modal").find('input[name="input-input"]').button();
-							$("#input-modal").find('input[name="input-input"]').val(obj.PARAM.default); //set the value
-						},
-						close: function (event, ui) {
-							var boxInput = $("#input-modal").find('input[name="input-input"]').val(); //get the value..
-							Eol.connection.send(JSON.stringify({ "type": "PARAM", "answer": boxInput }));
-						},
-						title: obj.PARAM.title,
-						width: 600,
-						height: 400,
-						buttons: {
-							"OK": function () {
-								$(this).dialog('close');
-							}
-						}
-					});
-				};
-				// define own confirm dialog
-				Eol.confirm = function (obj) {
-					$("#dialog-modal").html(obj.PARAM.text);
-					$("#dialog-modal").dialog({
-						title: obj.PARAM.title,
-						width: 600,
-						height: 400,
-						buttons: {
-							"Yes": function () {
-								$(this).dialog('close');
-								Eol.connection.send(JSON.stringify({ "type": "PARAM", "answer": "true" }));
-							},
-							"No": function () {
-								$(this).dialog('close');
-								Eol.connection.send(JSON.stringify({ "type": "PARAM", "answer": "false" }));
-							}
-						}
-					});
-				};
-
-				Eol.start();
 			});
+			$("#button").button({
+				icons: {
+					primary: "ui-icon-refresh"
+				}
+			});
+			$("#check").button({
+				icons: {
+					primary: "ui-icon-clock"
+				}
+			});
+			$("#outputclear").button({
+				icons: {
+					primary: "ui-icon-trash"
+				}
+			});
+			$("#outputlog").button({
+				icons: {
+					primary: "ui-icon-pencil"
+				}
+			});
+			$("#outputsave").button({
+				icons: {
+					primary: "ui-icon-disk"
+				}
+			});
+			$("#eolrewind").button({
+				icons: {
+					primary: "ui-icon-seek-first"
+				},
+				text: "rewind"
+			});
+			$("#eolrewind").click(function () {
+				Eol.rewind_request()
+			});
+			$("#eolplay").button({
+				icons: {
+					primary: "ui-icon-play"
+				},
+				text: "play",
+				/* click: function () {
+					var data = $("#sidebar-tree").jstree()
+					console.log("var 1")
+					console.log(data)
+				} */
+			});
+			$("#eolplay").click(function () {
+				var tree=$("#sidebar-tree").jstree(true)
+				var selected_node = null
+				var checked_ids = [];
+				var selected_nodes = $("#sidebar-tree").jstree("get_selected", true)
+				if (selected_nodes.length == 1) {
+					selected_node = selected_nodes[0].li_attr.eolid
+					var checked_nodes = tree.get_checked_descendants(selected_nodes[0].id)
+					if (checked_nodes.length > 0) {
+						$.each(checked_nodes, function () {
+							var node =tree.get_node(this)
+							checked_ids.push(node.li_attr.eolid)
+						});
+						Eol.play_request(selected_node,checked_nodes)
+					}
+				}
+				console.log(selected_node)
+				console.log(checked_ids)
 
-			// add file buffer changes to the page
-			Eol.fileChange = function fileChange(id, url, change) {
-				console.log("callback on File change: " + change + " for id " + id + " with URL " + url);
-				var table = document.getElementById("files");
-				var fileID = "oobd-file-" + id;
-				var existingEntry = document.getElementById(fileID);
-				if (change == "clear") {
-					if (existingEntry) {
-						existingEntry.parentNode.removeChild(existingEntry);
+			});
+			$("#eolstop").button({
+				icons: {
+					primary: "ui-icon-stop"
+				},
+				text: "stop"
+			});
+			$("#eolstop").click(function () {
+				Eol.stop_request()
+			});
+			$("#radioset").buttonset();
+			$("#dialog").dialog({
+				autoOpen: false,
+				width: 400,
+				buttons: [{
+					text: "Ok",
+					click: function () {
+						$(this).dialog("close");
+					}
+				}, {
+					text: "Cancel",
+					click: function () {
+						$(this).dialog("close");
+					}
+				}]
+			});
+			// Link to open the dialog
+			$("#dialog-link").click(function (event) {
+				$("#dialog").dialog("open");
+				event.preventDefault();
+			});
+			$("#datepicker").datepicker({
+				inline: true
+			});
+			$("#slider").slider({
+				range: true,
+				values: [17, 67]
+			});
+			$("#progressbar").progressbar({
+				value: 20
+			});
+			$("#menu").menu();
+			$("#tooltip").tooltip();
+			$("#selectmenu").selectmenu();
+			// Hover states on the static widgets
+			$("#dialog-link, #icons li").hover(
+				function () {
+					$(this).addClass("ui-state-hover");
+				},
+				function () {
+					$(this).removeClass("ui-state-hover");
+				}
+			);
+
+			Eol.writeString = function addText(text, cmd) {
+				switch (cmd) {
+					case "clear":
+						document.getElementById("textoutput").value = "";
+						break;
+					case "save":
+						saveOutput(text);
+						break;
+					default:
+						if (document.getElementById("outputlog").checked == true) {
+							document.getElementById("textoutput").value += text;
+						}
+						break;
+				}
+			}
+
+			// initialize a new OOBD EOL list to be shown
+			Eol.newList = function newList(text) {
+				window.document.title = text;
+				Eol.focusElement = null
+				Eol.listElements = []
+				$("#headline").text(text);
+				var ul = document.getElementById("sidebar-list");
+				while (ul.firstChild) ul.removeChild(ul.firstChild);
+
+			}
+
+			// list load finished
+			Eol.listDone = function listDone() {
+				if (Eol.focusElement && Eol.focusElement.focus) {
+					Eol.focusElement.focus()
+				}
+				$('#sidebar-tree').jstree({
+					'checkbox': {
+						'three_state': false,
+						'whole_node': false,//Used to check/uncheck node only if clicked on checkbox icon, and not on the whole node including label
+						'tie_selection': false
+					},
+					"plugins": ["themes", "html_data", "checkbox", "sort", "ui"]
+				});
+			}
+
+			// add a new list element to the list
+			Eol.addListElement = function addListElement(obj) {
+				var parent = document.getElementById("sidebar-list") // take the list root as start point
+				if (obj.parent) { // is it a subnode, then we lookup its parent first
+					parent = Eol.listElements[obj.parent].domElement
+					var ul = document.createElement('ul')
+					parent.appendChild(ul);
+					parent = ul
+				}
+				var li = document.createElement('li');
+				li.innerText = obj.text;
+				li.data = { eolid: obj.id }
+				// li.classList.add("OOBD");
+				li.setAttribute("eolid", obj.id);
+				//li.setAttribute("data-jstree",'{"icon":"//jstree.com/tree.png"}')
+				//li.setAttribute("data-jstree",'{"icon":"glyphicon glyphicon-wrench"}')
+				li.setAttribute("data-jstree",'{"icon": "'+document.URL+'/ok.png"}')
+				// <img src="https://icons.iconarchive.com/icons/oxygen-icons.org/oxygen/16/Actions-dialog-ok-apply-icon.png" width="16" height="16">
+
+				parent.appendChild(li);
+				obj.domElement = li
+				Eol.listElements[obj.id] = obj
+			}
+
+			// define own alert dialog
+			Eol.alert = function (obj) {
+				$("#dialog-modal").html(obj.DIALOG_INFO.tooltip);
+				$("#dialog-modal").dialog({
+					title: obj.DIALOG_INFO.title,
+					width: 600,
+					height: 400,
+					buttons: {
+						"OK": function () {
+							$(this).dialog('close');
+							Eol.connection.send(JSON.stringify({ "type": "PARAM", "answer": "true" }));
+						}
+					}
+				});
+			};
+
+			// define own input dialog
+			Eol.prompt = function (obj) {
+				$("#input-modal").dialog({
+					open: function (event, ui) {
+						var mydiv = $("#input-modal").find('#input-text').html(obj.PARAM.text);
+						$("#input-modal").find('input[name="input-input"]').button();
+						$("#input-modal").find('input[name="input-input"]').val(obj.PARAM.default); //set the value
+					},
+					close: function (event, ui) {
+						var boxInput = $("#input-modal").find('input[name="input-input"]').val(); //get the value..
+						Eol.connection.send(JSON.stringify({ "type": "PARAM", "answer": boxInput }));
+					},
+					title: obj.PARAM.title,
+					width: 600,
+					height: 400,
+					buttons: {
+						"OK": function () {
+							$(this).dialog('close');
+						}
+					}
+				});
+			};
+
+			// define own confirm dialog
+			Eol.confirm = function (obj) {
+				$("#dialog-modal").html(obj.PARAM.text);
+				$("#dialog-modal").dialog({
+					title: obj.PARAM.title,
+					width: 600,
+					height: 400,
+					buttons: {
+						"Yes": function () {
+							$(this).dialog('close');
+							Eol.connection.send(JSON.stringify({ "type": "PARAM", "answer": "true" }));
+						},
+						"No": function () {
+							$(this).dialog('close');
+							Eol.connection.send(JSON.stringify({ "type": "PARAM", "answer": "false" }));
+						}
+					}
+				});
+			};
+
+			// define the routine to set the status icons
+			Eol.setIconStates = function (new_node_states){
+				var tree=$("#sidebar-tree").jstree(true)
+				var all_nodes = tree.get_json('#', {flat:true})
+				$.each(all_nodes, function () {
+							var node =tree.get_node(this.id)
+							state=new_node_states[node.li_attr.eolid]
+							if (state){
+								state=new_node_states[node.li_attr.eolid]
+								if (state=="OK"){
+									tree.set_icon(node, 'http://jstree.com/tree-icon.png')
+								}
+							}
+						});
+			}
+			Eol.start();
+		});
+
+		// add file buffer changes to the page
+		Eol.fileChange = function fileChange(id, url, change) {
+			console.log("callback on File change: " + change + " for id " + id + " with URL " + url);
+			var table = document.getElementById("files");
+			var fileID = "oobd-file-" + id;
+			var existingEntry = document.getElementById(fileID);
+			if (change == "clear") {
+				if (existingEntry) {
+					existingEntry.parentNode.removeChild(existingEntry);
+				}
+			} else {
+				var cell2;
+				if (!existingEntry) {
+					// Create an empty <tr> element and add it to the last position of the table:
+					var row = table.insertRow(-1);
+					row.setAttribute("id", fileID);
+					// Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
+					var cell1 = row.insertCell(0);
+					cell2 = row.insertCell(1);
+					cell2.setAttribute("id", fileID + "-c");
+					if (url != "") {
+						var a = document.createElement('a');
+						a.download = id;
+						a.href = url;
+						a.textContent = id;
+						cell1.appendChild(a);
+					} else {
+						cell1.innerHTML = id;
 					}
 				} else {
-					var cell2;
-					if (!existingEntry) {
-						// Create an empty <tr> element and add it to the last position of the table:
-						var row = table.insertRow(-1);
-						row.setAttribute("id", fileID);
-						// Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
-						var cell1 = row.insertCell(0);
-						cell2 = row.insertCell(1);
-						cell2.setAttribute("id", fileID + "-c");
-						if (url != "") {
-							var a = document.createElement('a');
-							a.download = id;
-							a.href = url;
-							a.textContent = id;
-							cell1.appendChild(a);
-						} else {
-							cell1.innerHTML = id;
-						}
-					} else {
-						cell2 = document.getElementById(fileID + "-c");
-					}
-					cell2.innerHTML = change;
+					cell2 = document.getElementById(fileID + "-c");
 				}
-			};
+				cell2.innerHTML = change;
+			}
+		};
 
-			function saveOutput(fileName) {
-				var blob = new Blob([document.getElementById("textoutput").value], {
-					type: "text/plain;charset=utf-8"
-				});
-				var url = URL.createObjectURL(blob);
-				var a = document.createElement('a');
-				a.download = fileName;
-				a.href = url;
-				a.textContent = "Save Output";
-				a.click();
-				//if the click() function dosen't work you can try using onclick() fucntion like this
-				//a.onclick();
-				return false;
-			};
+		function saveOutput(fileName) {
+			var blob = new Blob([document.getElementById("textoutput").value], {
+				type: "text/plain;charset=utf-8"
+			});
+			var url = URL.createObjectURL(blob);
+			var a = document.createElement('a');
+			a.download = fileName;
+			a.href = url;
+			a.textContent = "Save Output";
+			a.click();
+			//if the click() function dosen't work you can try using onclick() fucntion like this
+			//a.onclick();
+			return false;
+		};
 
-		</script>
+	</script>
 </body>
 
 </html>

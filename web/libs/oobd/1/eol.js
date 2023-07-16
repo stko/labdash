@@ -343,6 +343,9 @@ if (typeof Eol == "undefined") {
 								window.alert(obj.config.DIALOG_INFO.tooltip);
 							}
 						}
+						if (obj.type == "ICONSTATES" && Eol.setIconStates) {
+							Eol.setIconStates(obj.config);
+						}
 
 					} catch (err) {
 						console.log("received msg Error " + err.message);
@@ -367,6 +370,7 @@ if (typeof Eol == "undefined") {
 				return xmlDoc;
 			}
 		},
+
 		loadXML: function (path, callback) {
 			var request;
 
@@ -406,7 +410,6 @@ if (typeof Eol == "undefined") {
 			request.send();
 		},
 
-
 		createXsltTransformer: function (path, callback) {
 
 			Eol.loadXML(path, function (xslText) {
@@ -423,17 +426,37 @@ if (typeof Eol == "undefined") {
 			});
 		},
 
-
-
 		sendUpdateReq: function (name, optid, value, updType) {
 			if (typeof Eol.connection.send != "undefined") {
 				Eol.connection.send(JSON.stringify({ "name": name, "optid": optid, "actValue": value, "updType": updType }));
 			} else {
 				return false;
 			}
-
 		},
 
+		rewind_request(){
+			if (typeof Eol.connection.send != "undefined") {
+				Eol.connection.send(JSON.stringify({ "type": "REWINDREQUEST", }));
+			} else {
+				return false;
+			}
+		},
+
+		play_request(selected_node,checked_nodes){
+			if (typeof Eol.connection.send != "undefined") {
+				Eol.connection.send(JSON.stringify({ "type": "PLAYREQUEST", "selected_node": selected_node, "checked_nodes": checked_nodes }));
+			} else {
+				return false;
+			}
+		},
+
+		stop_request(){
+			if (typeof Eol.connection.send != "undefined") {
+				Eol.connection.send(JSON.stringify({ "type": "stoprequest" }));
+			} else {
+				return false;
+			}
+		},
 	}
 
 }

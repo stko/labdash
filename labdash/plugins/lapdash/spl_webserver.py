@@ -142,22 +142,24 @@ class SplPlugin(SplThread):
 				response="<h2>No EOL reference in URL</h2>",
 				status=404
 			)
+			if not elements[0] in self.eol_directory:
+				return self.app.response_class(
+					response="<h2>Unknown EOL reference in URL</h2>",
+					status=404
+				)
+			self.actual_file_id=elements[0]
+			eol_info=self.eol_directory[elements[0]]
 			if len(elements)==1: # this is a request to load a new EOL
-				if not elements[0] in self.eol_directory:
-					return self.app.response_class(
-						response="<h2>Unknown EOL reference in URL</h2>",
-						status=404
-					)
-				self.actual_file_id=elements[0]
-				eol_info=self.eol_directory[elements[0]]
 				if 'html' in eol_info: # does this package has its own main html page?
 					return send_from_directory(eol_info['path'], eol_info['html'])
 				else:
 					return send_from_directory(os.path.join(self.config.read('actual_settings')['www_root_dir'],'theme',self.theme), 'startpage_eol.html')
-			return self.app.response_class(
+						# we serve the file from within an epa directory
+			return send_from_directory(eol_info['path'], '/'.join(elements[1:]))
+			""" return self.app.response_class(
 				response="<h2>Wrong parameters in handle_eol</h2>",
 				status=404
-			)
+			) """
 
 		@self.app.route('/libs/<path:path>')
 		def send_libs(path):
@@ -171,14 +173,15 @@ class SplPlugin(SplThread):
 				response="<h2>No EPA reference in URL</h2>",
 				status=404
 			)
+			if not elements[0] in self.epa_directory:
+				return self.app.response_class(
+					response="<h2>Unknown EPA reference in URL</h2>",
+					status=404
+				)
+			self.actual_file_id=elements[0]
+			epa_info=self.epa_directory[elements[0]]
 			if len(elements)==1: # this is a request to load a new EPA
-				if not elements[0] in self.epa_directory:
-					return self.app.response_class(
-						response="<h2>Unknown EPA reference in URL</h2>",
-						status=404
-					)
-				self.actual_file_id=elements[0]
-				epa_info=self.epa_directory[elements[0]]
+
 				if 'html' in epa_info: # does this package has its own main html page?
 					return send_from_directory(epa_info['path'], epa_info['html'])
 				else:
@@ -186,7 +189,7 @@ class SplPlugin(SplThread):
 
 
 			# we serve the file from within an epa directory
-			return send_from_directory(self.epa_directory[elements[0]]['path'], '/'.join(elements[1:]))
+			return send_from_directory(epa_info['path'], '/'.join(elements[1:]))
 
 		@self.app.route('/theme/<theme>/<path:path>')
 		def send_theme(theme,path):

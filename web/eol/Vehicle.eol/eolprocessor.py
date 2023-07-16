@@ -32,12 +32,27 @@ class EOL(EOLClass):
 			{
 				"id":"4711",
 				"parent":None,
-				"text":"master"
+				"text":"Inbetriebnahme"
 			},
 			{
 				"id":"4712",
 				"parent":"4711",
-				"text":"bla"
+				"text":"Motor"
+			},
+			{
+				"id":"4713",
+				"parent":"4712",
+				"text":"Kühlwasser"
+			},
+			{
+				"id":"4714",
+				"parent":"4711",
+				"text":"Kabine"
+			},
+			{
+				"id":"4715",
+				"parent":"4714",
+				"text":"Display"
 			}
 		]
 		self.eollist("ich bin der Titel",data)
