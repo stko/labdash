@@ -4,7 +4,7 @@
 			"path": "."
 		},
 		{
-			"path": "../../workcopies_mafi/labdash_internal"
+			"path": "../labdash_internal"
 		}
 	],
 	"settings": {}
