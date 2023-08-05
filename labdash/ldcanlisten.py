@@ -20,6 +20,7 @@ bus=None
 def LDCANListen(ldm_instance, port=0, bitrate=500000):
     # reads the config, if any
     global bus, thread
+
     config = JsonStorage(
         "LDCANBus",
         "backup",
@@ -44,6 +45,8 @@ def LDCANListen(ldm_instance, port=0, bitrate=500000):
         ldm_instance.add_close_handler(shutdown)
         global thread
         thread= threading.Thread(target=rcv_listen, args=(bus,))
+        print("init thread")
+        stop_event.clear()
         thread.start()
         return bus
     except Exception as ex:
@@ -141,6 +144,7 @@ def rcv_listen(bus, can_ids =None, timeout=0.1, extended=False, append=False):
       bus.set_filters( filters)
       """
       global error_precentage_rate
+      print("start thread")
       while not stop_event.is_set():
             CAN_ERR_FLAG = 0x20000000
             error_count = 0

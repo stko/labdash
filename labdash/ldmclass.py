@@ -109,8 +109,7 @@ class LDMClass(metaclass=ABCMeta):
 			traceback.print_exc(file=sys.stdout)
 
 	# some convience methods
-	def format_msgs(self,data_bytes, id):
-		[can_id_string, timeout, format_str] =id.split(':',2)
+	def format_msgs(self,data_bytes, format_str):
 		if not data_bytes:
 			return '-'
 		[data_type, bit_pos, bit_len, mult, div, offset,unit] = format_str.split(':')
@@ -144,8 +143,7 @@ class LDMClass(metaclass=ABCMeta):
 		if data_type=='a':
 			bytearray_message=bytearray(message_data_bytes)
 			return bytearray_message.decode("utf-8"), bytearray_message
-		else:
-			return 'unknown data type in format_str' ,None
+		return 'unknown data type in format_str' ,None
 
 	# implementation of the old OOBD lua interface commands
 
