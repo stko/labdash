@@ -1,0 +1,82 @@
+import yaml
+from ldmclass import LDMClass
+
+class YAMLMenu:
+    ''' Helper class to build the content out of a nested yaml file definition instead if hardcode everything'''
+
+
+    def __init__(self, ui: LDMClass, yaml_file: str):
+        self.ui=ui
+        with open(yaml_file, encoding="utf8") as fin:
+            self.menu_structure = yaml.load(fin)
+        self.menu_structure["_parent"] = None
+        self.build_metadata(self.menu_structure, None)
+
+    
+    def has_submenu(self, menu_item):
+        """returns submenu if the menu item contains another submenu"""
+        if not isinstance(menu_item, dict):
+            return False
+        # tricky: a submenu can be found in the second nested level, if any
+        for key, value in menu_item.items():
+            if key[0] != "_" and isinstance(value, dict):
+                return  True
+        return False
+
+    def build_metadata(self, menu_item: dict,  parent: dict):
+        """adds internal properties
+        
+        returns true if the item contains submenus"""
+        for key,value in menu_item.items():
+            if isinstance(value, dict):
+                self.build_metadata(value,  menu_item)
+                value["_is_menu"] = self.has_submenu(value)
+                value["_parent"] = parent
+                value["_name"] = key
+
+
+    def get_menu_id(self,menu_item:dict):
+        """calculates the string representation of the sub menu element"""
+        menu_id=menu_item["_name"]
+        parent=menu_item["_parent"]
+        while parent:
+            menu_item=menu_item["_parent"]
+            menu_id=menu_item["_name"]+"%%"+menu_id
+            parent=menu_item["_parent"]
+        return menu_id
+
+
+    def create_menu(self,  oldvalue:str, id:str):
+        """displays the (sub-) menu identified by the menu_id"""
+        elements=id.split("%%",)
+        sub_menu=self.menu_structure
+        if id:
+            for key in elements:
+                sub_menu=sub_menu[key]
+        if "_title" in sub_menu:
+            title=sub_menu["_title"]
+        else:
+            title=elements[-1]
+        self.ui.openPage(title)
+        for key,element in sub_menu.items():
+
+            if key[0] != "_":
+                if "_is_menu" in element and element["_is_menu"]:
+                    self.ui.addElement(
+                        element["_title"],
+                        "create_menu",
+                        "->",
+                        0,
+                        self.get_menu_id(element),
+                    )
+                else:
+                    self.ui.addElement(
+                        key,
+                        "get_value",
+                        "-",
+                        self.ui.VI_UPDATE | self.ui.VI_TIMER,
+                        element["_format"],
+                    )
+        if id:
+            self.ui.addElement("<-", "create_menu", "<-", self.ui.VI_BACK, "%%".join(elements[:-1]))
+        self.ui.pageDone()
