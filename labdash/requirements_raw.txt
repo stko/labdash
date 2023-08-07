@@ -1,0 +1,1 @@
+pip install bitstring Flask Flask-Sockets python-can python-uds lxml oyaml

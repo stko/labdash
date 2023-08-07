@@ -1,14 +1,43 @@
-import yaml
+import os
+import glob
+#import collections
+
+import oyaml
 from ldmclass import LDMClass
 
 class YAMLMenu:
     ''' Helper class to build the content out of a nested yaml file definition instead if hardcode everything'''
 
 
-    def __init__(self, ui: LDMClass, yaml_file: str):
+    # https://gist.github.com/angstwad/bf22d1822c38a92ec0a9
+
+    def dict_merge(self, dct, merge_dct):
+        """ Recursive dict merge. Inspired by :meth:``dict.update()``, instead of
+        updating only top-level keys, dict_merge recurses down into dicts nested
+        to an arbitrary depth, updating keys. The ``merge_dct`` is merged into
+        ``dct``.
+        :param dct: dict onto which the merge is executed
+        :param merge_dct: dct merged into dct
+        :return: None
+        """
+        for k in merge_dct:
+            if (k in dct and isinstance(dct[k], dict) and isinstance(merge_dct[k], dict)):  #noqa
+                self.dict_merge(dct[k], merge_dct[k])
+            else:
+                dct[k] = merge_dct[k]
+
+
+    def __init__(self, ui: LDMClass, yaml_file_or_path: str):
         self.ui=ui
-        with open(yaml_file, encoding="utf8") as fin:
-            self.menu_structure = yaml.load(fin)
+        self.menu_structure={}
+        if os.path.isdir(yaml_file_or_path):
+            for file_name in glob.glob(yaml_file_or_path+"/*.yaml"):
+                with open(file_name, encoding="utf8") as fin:
+                    self.dict_merge(self.menu_structure, oyaml.load(fin, Loader=oyaml.Loader))
+        else:
+            with open(yaml_file_or_path, encoding="utf8") as fin:
+                self.menu_structure = oyaml.load(fin, Loader=oyaml.Loader)
+        print(self.menu_structure)
         self.menu_structure["_parent"] = None
         self.build_metadata(self.menu_structure, None)
 
