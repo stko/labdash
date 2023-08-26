@@ -135,6 +135,7 @@ class LDMClass(metaclass=ABCMeta):
             message_data_bytes = data_bytes[bit_pos // 8 : bit_pos // 8 + bit_len // 8]
         else:
             message_data_bytes = BitArray(data_bytes)
+            print(str(message_data_bytes.b))
             message_data_bytes = message_data_bytes[bit_pos : bit_pos + bit_len]
             if bit_len % 8 != 0:  # we need to do padding :-(
                 # first we need the numpber of leading padding bits
