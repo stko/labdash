@@ -27,8 +27,9 @@ class YAMLMenu:
                 dct[k] = merge_dct[k]
 
 
-    def __init__(self, ui: LDMClass, yaml_file_or_path: str):
+    def __init__(self, ui: LDMClass, yaml_file_or_path: str,main_title:str):
         self.ui=ui
+        self.main_title=main_title
         self.menu_structure={}
         if os.path.isdir(yaml_file_or_path):
             for file_name in glob.glob(yaml_file_or_path+"/*.yaml"):
@@ -86,6 +87,8 @@ class YAMLMenu:
             title=sub_menu["_title"]
         else:
             title=elements[-1]
+        if not title:
+            title=self.main_title
         self.ui.openPage(title)
         for key,element in sub_menu.items():
 
