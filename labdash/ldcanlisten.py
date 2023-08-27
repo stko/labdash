@@ -117,11 +117,11 @@ def rcv_listen(bus, can_ids=None, timeout=0.1, extended=False, append=False):
             rx_count += 1
         if append:
             if not message.arbitration_id in received_msgs:
-                received_msgs[message.arbitration_id] = [message]
+                received_msgs[message.arbitration_id] = [{"timestamp" :time.time(), "msg":message}]
             else:
-                received_msgs[message.arbitration_id].append(message)
+                received_msgs[message.arbitration_id].append({"timestamp" :time.time(), "msg":message})
         else:
-            received_msgs[message.arbitration_id] = [message]
+            received_msgs[message.arbitration_id] = [{"timestamp" :time.time(), "msg":message}]
         if rx_count == 0:
             if error_count:
                 error_precentage_rate = 100
@@ -137,12 +137,16 @@ def rcv_collect(age_ms:int=0):
     return list of all collected msg IDs and its message
     if age is set as ms, only the msgs are returned which are not older as age
     '''
-    if age_ms:
-        act_timestamp=time.time()-float(age_ms/1000)
-        return {id:msg for (id,msg) in received_msgs.items() if msg[0].timestamp>= act_timestamp}
-
-    return received_msgs
-
+    result={}
+    act_timestamp=time.time()-float(age_ms/1000)
+    for id,msgs in received_msgs.items():
+        for msg_data in msgs:
+                if age_ms==0 or msg_data["timestamp"]>= act_timestamp:
+                    if id not in result:
+                        result[id]=[msg_data["msg"]]
+                    else:
+                        result[id].append(msg_data["msg"])
+    return result
 
 def shutdown():
     if thread:
