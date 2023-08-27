@@ -129,7 +129,7 @@ class LDMClass(metaclass=ABCMeta):
         # length check
         if data_type != "a":
             if bit_pos // 8 + bit_len // 8 > len(data_bytes):
-                return "message data too short"
+                return "message data too short",0
         # test, if we can use faster byte oriented methods or bit-wise, but slower bitstring operations
         if bit_pos % 8 == 0 and bit_len % 8 == 0:
             message_data_bytes = data_bytes[bit_pos // 8 : bit_pos // 8 + bit_len // 8]
@@ -185,7 +185,7 @@ class LDMClass(metaclass=ABCMeta):
             "value": value,
         }
         if oobdElementFlags:
-            msg["FN_UPDATEOPS"] = oobdElementFlags
+            msg["updevents"] = oobdElementFlags
         if optid:
             msg["name"] += ":" + optid
         if optTable:
