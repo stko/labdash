@@ -55,48 +55,21 @@ def LDCANListen(ldm_instance, port=0, bitrate=500000):
         return None
 
 
-def id_exists(received_msgs_dict: dict, can_id: int, can_mask: int):
-    """checks if a (masked) id was received
-
-    :param dict received_msgs_dict: dict of received messages
-    :param int can_id: id to search for
-    :param int can_mask: if id && can_mask == can_id then True
-
-    :return: True if ID is found
-    :rtype: bool
-
-    .. todo::
-
-    """
-
-    if not can_mask:
-        return can_id in received_msgs_dict
-    else:
-        for recv_id in received_msgs_dict:
-            if recv_id & can_mask == can_id:
-                return True
-    return False
-
-
-def rcv_listen(bus, can_ids=None, timeout=0.1, extended=False, append=False):
+def rcv_listen(bus, can_ids=None, timeout=0.1, extended=False, collect_time=0):
     """Thread which collects messages in received_msgs
 
     :param obj sender: can bus
     :param list can_ids: list of can IDs to listen for  # ACTUAL NOT SUPPORTED
     :param float timeout: wait time for a message
     :param bool extended: are the ids extended  # ACTUAL NOT SUPPORTED
-    :param bool append: if not set, only the last message of an id is kept
+    :param float collect_time: collect time in secs: if 0, only the last message of an id is kept,
+        otherways the messages over the collect time
 
 
     .. todo::
-
-    """
-
-    """
-      
-      TODO: Die neuen can_masks müssten noch irgendwie mit in den Filter..
-      filters=[ {"can_id": can_id,"can_mask": can_id, "extended": extended} for can_id in can_ids]
-      bus.set_filters( filters)
+        Die neuen can_masks müssten noch irgendwie mit in den Filter..
+        filters=[ {"can_id": can_id,"can_mask": can_id, "extended": extended} for can_id in can_ids]
+        bus.set_filters( filters)
       """
     global error_precentage_rate
     print("start receive thread")
@@ -115,13 +88,28 @@ def rcv_listen(bus, can_ids=None, timeout=0.1, extended=False, append=False):
             error_count += 1
         else:
             rx_count += 1
-        if append:
+        if collect_time:
+            this_time = time.time()
+            max_age = this_time - collect_time
             if not message.arbitration_id in received_msgs:
-                received_msgs[message.arbitration_id] = [{"timestamp" :time.time(), "msg":message}]
+                received_msgs[message.arbitration_id] = [
+                    {"timestamp": this_time, "msg": message}
+                ]
             else:
-                received_msgs[message.arbitration_id].append({"timestamp" :time.time(), "msg":message})
+                received_msgs[message.arbitration_id].append(
+                    {"timestamp": this_time, "msg": message}
+                )
+            # remove old msgs
+            for msgs in received_msgs.values():
+                for msg in msgs[
+                    :
+                ]:  # this generates a copy of msgs to allow deleting while looping
+                    if msg["timestamp"] < max_age:
+                        received_msgs.remove(msg)
         else:
-            received_msgs[message.arbitration_id] = [{"timestamp" :time.time(), "msg":message}]
+            received_msgs[message.arbitration_id] = [
+                {"timestamp": this_time, "msg": message}
+            ]
         if rx_count == 0:
             if error_count:
                 error_precentage_rate = 100
@@ -132,21 +120,31 @@ def rcv_listen(bus, can_ids=None, timeout=0.1, extended=False, append=False):
     print("end receive thread")
 
 
-def rcv_collect(age_ms:int=0):
-    '''
-    return list of all collected msg IDs and its message
-    if age is set as ms, only the msgs are returned which are not older as age
-    '''
-    result={}
-    act_timestamp=time.time()-float(age_ms/1000)
-    for id,msgs in received_msgs.items():
+def rcv_collect(can_id: int, can_mask: int = 0, age_ms: int = 0):
+    """
+    :param int can_id: can id to filter for
+    :param int can_mask: if set, used as mask to filter for can ids. (received_id & can_mask == can_id)
+    :param float age_ms: if set as ms, only the msgs are returned which are not older as age
+
+    :return list: list of all collected msg IDs and its message
+    """
+    result = {}
+    act_timestamp = time.time() - float(age_ms / 1000)
+    for id, msgs in received_msgs.items():
+        if not can_mask:
+            if can_id != id:
+                continue
+        else:
+            if id & can_mask != can_id:
+                continue
         for msg_data in msgs:
-                if age_ms==0 or msg_data["timestamp"]>= act_timestamp:
-                    if id not in result:
-                        result[id]=[msg_data["msg"]]
-                    else:
-                        result[id].append(msg_data["msg"])
+            if age_ms == 0 or msg_data["timestamp"] >= act_timestamp:
+                if id not in result:
+                    result[id] = [msg_data["msg"]]
+                else:
+                    result[id].append(msg_data["msg"])
     return result
+
 
 def shutdown():
     if thread:
