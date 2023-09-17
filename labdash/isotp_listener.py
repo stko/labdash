@@ -43,6 +43,7 @@ class IsoTpOptions:
     target_address=0
     bs=0 # The block size sent in the flow control message. Indicates the number of consecutive frame a sender can send before the socket sends a new flow control. A block size of 0 means that no additional flow control message will be sent (block size of infinity)
     stmin =0 # The minimum separation time sent in the flow control message. Indicates the amount of time to wait between 2 consecutive frame. This value will be sent as is over CAN. Values from 1 to 127 means milliseconds. Values from 0xF1 to 0xF9 means 100us to 900us. 0 Means no timing requirements
+    frame_timeout = 100 # maximal allowed time in ms between two received frames to keep the transfer active
     wftmax = 0 # Maximum number of wait frame (flow control message with flow status=1) allowed before dropping a message. 0 means that wait frame are not allowed
     send_frame = None
     uds_handler= None
@@ -76,8 +77,13 @@ class Isotp_Listener:
         self.flow_control_block_size=0
         self.receive_flow_control_block_count=0
         self.consecutive_frame_delay=0
+        self.last_frame_received_tick=0
 
+    def update_options(self, options: IsoTpOptions):
+        self.options=options
 
+    def get_options(self):
+        return self.options
 
     def tick(self, time_ticks:int):
         self.this_tick = time_ticks
@@ -85,6 +91,14 @@ class Isotp_Listener:
             if self.last_action_tick + self.consecutive_frame_delay < self.this_tick:
                 # it is time to send the next CF
                 self.send_cf_telegram()
+        # are we waiting for something?
+        if self.actual_state == ActualState.FlowControl or self.actual_state == ActualState.WaitConsecutive:
+            if self.last_frame_received_tick + self.options.frame_timeout < self.this_tick:
+            # waited too long
+                print("Tick Timeout")
+                self.actual_state = ActualState.Sleeping
+                return True
+        return False
 
 
     # transfers data from the send buffer into the can message and set all data accordingly
@@ -185,7 +199,9 @@ class Isotp_Listener:
         if frame_identifier > 3:
             return MSG_UDS_WRONG_FORMAT #  illegal format
         frametype = frame_identifier
-
+        # remember that a valid frame came in
+        self.last_frame_received_tick = self.this_tick # remember the time of this action
+  
         if frametype == FrameType.First:
             print("First Frame")
             dl = (data[0] & 0x0F) * 256 + data[1]
@@ -284,4 +300,8 @@ class Isotp_Listener:
                 self.options.send_frame(self.options.target_address, self.telegrambuffer, 3)
                 return MSG_UDS_UNEXPECTED_CF
         return MSG_UDS_ERROR # message handled
-        
+
+
+    # True if a transfer is actual ongoing
+    def busy(self):
+        return self.actual_state != ActualState.Sleeping
