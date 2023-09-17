@@ -5,7 +5,7 @@
 import sys
 import os
 import can
-from uds import Uds
+#from uds import Uds
 from  jsonstorage import JsonStorage
 from datetime import datetime
 import traceback
@@ -49,7 +49,7 @@ https://github.com/stko/python-uds/commit/00878336be1be6bffc4a5e5f083f8ed72580e8
 '''
 
 
-
+'''
 def LDUDS(ldm_instance, port=0, bitrate=500000, resId=0x7E0, reqId=0x7E8):
 	# reads the config, if any
 	config = JsonStorage('LDCANBus', 'backup', "config.json",
@@ -74,7 +74,7 @@ def LDUDS(ldm_instance, port=0, bitrate=500000, resId=0x7E0, reqId=0x7E8):
 		print('Error:', str(ex))
 		return None
 
-
+'''
 def send_can_11b( bus, id,data):
 	message = can.Message(arbitration_id=id, is_extended_id=False, data=data)
 	bus.send(message)
