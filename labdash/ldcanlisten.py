@@ -88,8 +88,8 @@ def rcv_listen(bus, can_ids=None, timeout=0.1, extended=False, collect_time=0):
             error_count += 1
         else:
             rx_count += 1
+        this_time = time.time()
         if collect_time:
-            this_time = time.time()
             max_age = this_time - collect_time
             if not message.arbitration_id in received_msgs:
                 received_msgs[message.arbitration_id] = [
