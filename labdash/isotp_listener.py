@@ -91,6 +91,7 @@ class Isotp_Listener:
             if self.last_action_tick + self.consecutive_frame_delay < self.this_tick:
                 # it is time to send the next CF
                 self.send_cf_telegram()
+            return False
         # are we waiting for something?
         if self.actual_state == ActualState.FlowControl or self.actual_state == ActualState.WaitConsecutive:
             if self.last_frame_received_tick + self.options.frame_timeout < self.this_tick:
@@ -98,6 +99,7 @@ class Isotp_Listener:
                 print("Tick Timeout")
                 self.actual_state = ActualState.Sleeping
                 return True
+            return False
         return False
 
 

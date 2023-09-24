@@ -139,26 +139,28 @@ def challenge_response_request(name:str, data : bytearray):
     challenge_response_protocols[name]["busy"]=True
     protocol.send_telegram(data,len(data))
     while True:
-        q=queue.get(timeout=0.1)
-        if not q: # something is broken :-(
-            print("broken queue")
-            challenge_response_protocols[name]["busy"]=False
-            return {"error": "queue timeout", "data": None}
-        if q["type"]=="wait":
-            #print("wait")
-            time.sleep(0.01)
-            continue
-        if q["type"]=="timeout":
-            print("timeout queue")
-            challenge_response_protocols[name]["busy"]=False
-            return {"error": "answer timeout", "data": None}
-        if q["type"]=="data":
-            print("data queue")
-            challenge_response_protocols[name]["busy"]=False
-            buffer = bytearray(isotp_listener.UDS_BUFFER_SIZE) # generate a copy of the data
-            buffer[:q["len"]] = q["data"]
-            nr_of_bytes=q["len"]
-            return {"error": "", "data": buffer,"len":nr_of_bytes}
+        try:
+            q=queue.get(timeout=0.1)
+            if q["type"]=="wait":
+                #print("wait")
+                time.sleep(0.01)
+                continue
+            if q["type"]=="timeout":
+                print("timeout queue")
+                challenge_response_protocols[name]["busy"]=False
+                return {"error": "timeout", "data": None}
+            if q["type"]=="data":
+                print("data queue")
+                challenge_response_protocols[name]["busy"]=False
+                buffer = bytearray(isotp_listener.UDS_BUFFER_SIZE) # generate a copy of the data
+                buffer[:q["len"]] = q["data"]
+                nr_of_bytes=q["len"]
+                return {"error": "", "data": buffer,"len":nr_of_bytes}
+        #except queue.Empty:
+        except :
+                print("broken queue")
+                challenge_response_protocols[name]["busy"]=False
+                return {"error": "queue timeout", "data": None}
    
 
 def forward_to_protocols(can_id : int, data : bytearray, nr_of_bytes: int):
