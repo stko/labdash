@@ -30,6 +30,9 @@ class PluginManager():
 		self.origin_dir = os.path.dirname(__file__)
 		self.config = JsonStorage('PluginManager', 'backup', "plugins.json", {
 				'plugins':{
+					"eolhandler": {
+						"active": True
+					},
 					"epahandler": {
 						"active": True
 					},
