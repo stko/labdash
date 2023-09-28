@@ -146,9 +146,17 @@ class LDMClass(metaclass=ABCMeta):
             else:
                 message_data_bytes = message_data_bytes.tobytes()
 
-        if data_type == "f":
+        if data_type == "fb":
             raw = (
                 int.from_bytes(message_data_bytes, byteorder="big", signed=False)
+                * mult
+                / div
+                + offset
+            )
+            return str(raw) + unit, raw
+        if data_type == "fl":
+            raw = (
+                int.from_bytes(message_data_bytes, byteorder="little", signed=False)
                 * mult
                 / div
                 + offset
