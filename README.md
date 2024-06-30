@@ -11,3 +11,6 @@ By that the UI does not need to know the program internas and can be generic, an
 
 ## Once upon a time
 Labdash can be seen as a rebirth of [OOBD](https://oobd.org). It uses the same princible and a part of the codebase, but it's much  slimmer and modernized by replacing the old lua compiling process by a JIT python runtime
+
+## License
+Labdash is released as LGPL + CC-BY-SA, so in can be use as library even in commercial proprietary closed projects, but with the CC-SA restriction: SHARE ALIKE: All modifications and additions to any generic functions must be published. This includes but is not limited to public available protocols (CANOpen, J1379, UDS etc.), system standard functionalities (IO, flashing, configuration, testing).
