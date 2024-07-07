@@ -32,6 +32,8 @@ sequenceDiagram
     EOLP->>+Modules: Build
     EOLP->>Modules: Request Data
     EOLP->>Modules: Execute Commands
+    Modules->Protocols: send/request data packets
+    Protocols->CANBus: CAN Frames
     Modules -->>EOLP: Return Results
     EOLP -->>-Lapdash: Return Results
     Lapdash -->>User: Provide Feedbacks
