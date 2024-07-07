@@ -68,7 +68,7 @@ class SplPlugin(SplThread):
 					'theme':'default',
 					'www_root_dir': os.path.realpath(os.path.join(self.program_dir,'../../../web/')),
 					'epa_root_dir': [os.path.realpath(os.path.join(self.program_dir,'../../../web/examples/'))],
-					'eol_root_dir': []
+					'eol_root_dir': [os.path.realpath(os.path.join(self.program_dir,'../../../web/eol/'))]
 				}
 
 			})
