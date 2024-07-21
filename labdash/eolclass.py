@@ -25,9 +25,11 @@ class EOLClass(metaclass=ABCMeta):
     VI_BACK = 16  # would be called if on the UI the hard coded "Back"- button is used (only in hard coded UIs, not (yet) in Browser)
     VI_GRAPH = 32  # ???
 
-    def __init__(self, msg_handler):
+    def __init__(self, msg_handler,full_path_name:str):
         self.msg_handler = msg_handler
+        self.full_path_name=full_path_name
         self.closeHandlers = set()
+        self.test_units={}
         self.bus = None
         self.answer_handler = None
 
@@ -189,13 +191,26 @@ class EOLClass(metaclass=ABCMeta):
             defaults.MSG_SOCKET_MSG,
             {"type": defaults.CM_EOL_ICONSTATES, "config": states},
         )
-    def load_procedures(self,file_path="procedures.yaml"):
+    def load_procedures(self):
         '''
         load the procedures definition files
         '''
+        ecus_file_path=os.path.join(self.full_path_name,"ECUs.yaml")
         try:
-            with open(file_path,encoding="utf-8") as fin:
-                procedure= oyaml.load_all(fin)
+            with open(ecus_file_path,encoding="utf-8") as fin:
+                self.ecus= oyaml.load(fin,Loader=oyaml.Loader)["modules"]
         except oyaml.YAMLError as exc:
-            return exc
-        
+            self.ecus={}
+        self.test_units={}
+        try:
+            for file in os.listdir(self.full_path_name):
+                try:
+                    if file.endswith(".eoltest.yaml"):
+                        unit_name=os.path.basename(file)
+                        eoltest_file_path=os.path.join(self.full_path_name,file)
+                        with open(eoltest_file_path,encoding="utf-8") as fin:
+                            self.test_units[unit_name]= oyaml.load(fin,Loader=oyaml.Loader)
+                except oyaml.YAMLError as exc:
+                    pass
+        except Exception as ex:
+            print("listdir error",str(ex))

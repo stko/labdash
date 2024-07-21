@@ -372,7 +372,7 @@
 		return true;
 	}
 	// start the EOL handler
-		Eol.start()
+	//	Eol.start()
 				</script>
 			</body>
 		</html>

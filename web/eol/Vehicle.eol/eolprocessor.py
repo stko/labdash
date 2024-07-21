@@ -27,7 +27,7 @@ class EOL(EOLClass):
 
 	def main(self,oldvalue,id):
 		print('tärä!')
-		self.load_proccedures()
+		self.load_procedures()
 		self.displayWrite("Moin")
 		data= [
 			{

@@ -157,6 +157,11 @@ class SplPlugin(SplThread):
 					if not script:
 						logger.warning(f'no (default) script given in {file_info.path}')
 						continue
+					'''
+					 Design question: do we need the procedures coming from the manifest?
+
+					 Actual they are searched in eolclass.load_procedures
+
 					if 'procedures' in manifest:
 						potential_source=os.path.join(file_info.path,manifest['procedures'])
 						if os.path.exists(potential_source):
@@ -168,7 +173,7 @@ class SplPlugin(SplThread):
 					if not procedures:
 						logger.warning(f'no (default) procedures given in {file_info.path}')
 						continue
-
+					'''
 				except: 
 					logger.warning(f'no readable manifest in {file_info.path}')
 					continue
@@ -178,7 +183,7 @@ class SplPlugin(SplThread):
 					'manifest': manifest,
 					'path' : file_info.path,
 					'script': script,
-					'procedures': procedures,
+					# 'procedures': procedures,
 					'full_path_name' : os.path.join(file_info.path,script)
 					}
 			
@@ -204,7 +209,7 @@ class SplPlugin(SplThread):
 				self.instance.stop()
 				self.instance = None
 			module_spec.loader.exec_module(my_module)
-			self.instance = my_module.EOL(self.modref.message_handler)
+			self.instance = my_module.EOL(self.modref.message_handler,eol_info['path'])
 			self.eols[eol_info['file_id']]['instance'] =self.instance # ? I don't know for that might be used later, but I just keep it in :-)
 			self.instance.run()
 		except Exception as e:
