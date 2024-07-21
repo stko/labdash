@@ -10,6 +10,8 @@ from abc import ABCMeta, abstractmethod
 import defaults
 import traceback
 from bitstring import BitArray  # nice module for bit wise operations
+from utils.byteformatter import format_msgs
+import oyaml
 
 
 class EOLClass(metaclass=ABCMeta):
@@ -115,47 +117,7 @@ class EOLClass(metaclass=ABCMeta):
 
     # some convience methods
     def format_msgs(self, data_bytes, id):
-        [can_id_string, timeout, format_str] = id.split(":", 2)
-        if not data_bytes:
-            return "-"
-        [data_type, bit_pos, bit_len, mult, div, offset, unit] = format_str.split(":")
-        bit_pos = int(bit_pos)
-        bit_len = int(bit_len)
-        mult = float(mult)
-        div = float(div)
-        offset = float(offset)
-        # length check
-        if data_type != "a":
-            if bit_pos // 8 + bit_len // 8 > len(data_bytes):
-                return "message data too short"
-        # test, if we can use faster byte oriented methods or bit-wise, but slower bitstring operations
-        if bit_pos % 8 == 0 and bit_len % 8 == 0:
-            message_data_bytes = data_bytes[bit_pos // 8 : bit_pos // 8 + bit_len // 8]
-        else:
-            message_data_bytes = BitArray(data_bytes)
-            message_data_bytes = message_data_bytes[bit_pos : bit_pos + bit_len]
-            if bit_len % 8 != 0:  # we need to do padding :-(
-                # first we need the numpber of leading padding bits
-                padding_string = "0b" + "0" * (8 - (bit_len % 8))
-                padding_bits = BitArray(padding_string)
-                padding_bits.append(message_data_bytes)
-                message_data_bytes = padding_bits.tobytes()
-            else:
-                message_data_bytes = message_data_bytes.tobytes()
-
-        if data_type == "f":
-            raw = (
-                int.from_bytes(message_data_bytes, byteorder="big", signed=False)
-                * mult
-                / div
-                + offset
-            )
-            return str(raw) + unit, raw
-        if data_type == "a":
-            bytearray_message = bytearray(message_data_bytes)
-            return bytearray_message.decode("utf-8"), bytearray_message
-        else:
-            return "unknown data type in format_str", None
+        return format_msgs(data_bytes,id)
 
     def displayWrite(self, text, cmd=None):
         msg = {
@@ -199,17 +161,7 @@ class EOLClass(metaclass=ABCMeta):
         )
         print("Warning: Waiting for answer in msgBox() not correctly implemented yet")
 
-    def onionMsg(*args, **kwargs):
-        print("Warning: Call of non implemented legacy function onionMsg()")
 
-    def dbLookup(*args, **kwargs):
-        print("Warning: Call of non implemented legacy function dbLookup()")
-
-    def ioInput(*args, **kwargs):
-        print("Warning: Call of non implemented legacy function ioInput()")
-
-    def ioRead(*args, **kwargs):
-        print("Warning: Call of non implemented legacy function ioRead()")
 
     ##### new commands  ##
     def send_value(self, name, new_Value):
@@ -237,3 +189,13 @@ class EOLClass(metaclass=ABCMeta):
             defaults.MSG_SOCKET_MSG,
             {"type": defaults.CM_EOL_ICONSTATES, "config": states},
         )
+    def load_procedures(self,file_path="procedures.yaml"):
+        '''
+        load the procedures definition files
+        '''
+        try:
+            with open(file_path,encoding="utf-8") as fin:
+                procedure= oyaml.load_all(fin)
+        except oyaml.YAMLError as exc:
+            return exc
+        
