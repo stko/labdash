@@ -14,6 +14,17 @@ from utils.byteformatter import format_msgs
 import oyaml
 
 
+class TestResult:
+    """
+    little helper class to handle the outcome of a test
+    """
+
+    not_tested = 1
+
+    def __init__(self):
+        self.state = self.not_tested
+
+
 class EOLClass(metaclass=ABCMeta):
     """Partly abstract class as base class for LabDash modules"""
 
@@ -25,13 +36,17 @@ class EOLClass(metaclass=ABCMeta):
     VI_BACK = 16  # would be called if on the UI the hard coded "Back"- button is used (only in hard coded UIs, not (yet) in Browser)
     VI_GRAPH = 32  # ???
 
-    def __init__(self, msg_handler,full_path_name:str):
+    def __init__(self, msg_handler, full_path_name: str):
         self.msg_handler = msg_handler
-        self.full_path_name=full_path_name
+        self.full_path_name = full_path_name
         self.closeHandlers = set()
-        self.test_units={}
+        self.test_units = {}
         self.bus = None
         self.answer_handler = None
+        self.is_running = False  # a flag to exit the execution loop, when running
+        self.waiting_for_answer = (
+            False  # a flag to exit the execution loop, when running
+        )
 
     def add_close_handler(self, close_handler):
         self.closeHandlers.add(close_handler)
@@ -119,7 +134,7 @@ class EOLClass(metaclass=ABCMeta):
 
     # some convience methods
     def format_msgs(self, data_bytes, id):
-        return format_msgs(data_bytes,id)
+        return format_msgs(data_bytes, id)
 
     def displayWrite(self, text, cmd=None):
         msg = {
@@ -163,8 +178,6 @@ class EOLClass(metaclass=ABCMeta):
         )
         print("Warning: Waiting for answer in msgBox() not correctly implemented yet")
 
-
-
     ##### new commands  ##
     def send_value(self, name, new_Value):
         self.msg_handler.queue_event(
@@ -191,26 +204,70 @@ class EOLClass(metaclass=ABCMeta):
             defaults.MSG_SOCKET_MSG,
             {"type": defaults.CM_EOL_ICONSTATES, "config": states},
         )
+
     def load_procedures(self):
-        '''
+        """
         load the procedures definition files
-        '''
-        ecus_file_path=os.path.join(self.full_path_name,"ECUs.yaml")
+        """
+        ecus_file_path = os.path.join(self.full_path_name, "ECUs.yaml")
         try:
-            with open(ecus_file_path,encoding="utf-8") as fin:
-                self.ecus= oyaml.load(fin,Loader=oyaml.Loader)["modules"]
+            with open(ecus_file_path, encoding="utf-8") as fin:
+                self.ecus = oyaml.load(fin, Loader=oyaml.Loader)["modules"]
         except oyaml.YAMLError as exc:
-            self.ecus={}
-        self.test_units={}
+            self.ecus = {}
+        self.test_units = {}
+        temporary_test_units = {}
         try:
             for file in os.listdir(self.full_path_name):
                 try:
                     if file.endswith(".eoltest.yaml"):
-                        unit_name=os.path.basename(file)
-                        eoltest_file_path=os.path.join(self.full_path_name,file)
-                        with open(eoltest_file_path,encoding="utf-8") as fin:
-                            self.test_units[unit_name]= oyaml.load(fin,Loader=oyaml.Loader)
+                        unit_name = os.path.basename(file)
+                        eoltest_file_path = os.path.join(self.full_path_name, file)
+                        with open(eoltest_file_path, encoding="utf-8") as fin:
+                            this_unit = oyaml.load(fin, Loader=oyaml.Loader)
+                            if "system" in this_unit:
+                                unit_name = this_unit["system"]
+                            else:
+                                unit_name = os.path.basename(file)
+                            if unit_name not in temporary_test_units:
+                                temporary_test_units[unit_name] = {}
+                            temporary_test_units[unit_name].update(this_unit)
                 except oyaml.YAMLError as exc:
                     pass
         except Exception as ex:
-            print("listdir error",str(ex))
+            print("listdir error", str(ex))
+        # as next, preforming the loaded structures in temporary_test_units to their full content
+
+        for unit_name, unit_data in temporary_test_units.items():
+            self.test_units[unit_name] = {}
+            for test_name, input_test_data in unit_data.items():
+                if test_name not in ["system"]:  # filter for unwanted properties
+                    test_data = {}
+                    # as next we replace dependencies names with fully qualified identifiers
+                    for property, property_data in input_test_data.items():
+                        if property in ["depends", "repair"]:
+                            test_data[property] = []
+                            for single_test in property_data:
+                                if (
+                                    not isinstance(single_test, str)
+                                    or ":" in single_test
+                                ):  # it's either no dependency (no string) or already qualified
+                                    test_data[property].append(single_test)
+                                else:
+                                    test_data[property].append(
+                                        unit_name + ":" + single_test
+                                    )
+
+                        else:
+                            test_data[property] = property_data
+                    self.test_units[unit_name][unit_name + ":" + test_name] = test_data
+                    test_data["result"] = TestResult()
+        pass
+
+    def get_test_tree(self):
+        # first
+        pass
+
+    #### the test routines
+    def execute_unit(self):
+        pass

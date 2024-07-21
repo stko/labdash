@@ -2,35 +2,32 @@
 system: Display
 
 batteriewarnung:
-  yes: Display funktioniert
-  no: Display funktioniert nicht
+  pass: Display funktioniert
+  fail: Display funktioniert nicht
   depends:
     - F504 gesteckt
     - firmwareversion():
         modul: A88
         version: =>2.4.0
     - Firmware A64
- 
- 
 
 F504 gesteckt:
   depends:
     - check_input():
-       modul: A64
-       pin: IO43
-       value: True
+        modul: A64
+        pin: IO43
+        value: True
   repair:
     - ask():
-      text: Prüfe, ob Sicherung F04 gesteckt ist
+        text: Prüfe, ob Sicherung F04 gesteckt ist
 
 Firmware A64:
   depends:
-     - firmwareversion():
+    - firmwareversion():
         modul: A64
         version: =>1.5.0
   repair:
-     - flashfirmware():
-       file: http://releases.mafi.de/....
-       token: AB9D007BF
-       module: A64
-...
+    - flashfirmware():
+      file: http://releases.mafi.de/....
+      token: AB9D007BF
+      module: A64
