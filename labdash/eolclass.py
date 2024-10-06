@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
+import importlib
 import sys
 import os
 import threading
@@ -36,11 +37,13 @@ class EOLClass(metaclass=ABCMeta):
     VI_BACK = 16  # would be called if on the UI the hard coded "Back"- button is used (only in hard coded UIs, not (yet) in Browser)
     VI_GRAPH = 32  # ???
 
-    def __init__(self, msg_handler, full_path_name: str):
+    def __init__(self, msg_handler, full_path_name: str, module_dirs: list):
         self.msg_handler = msg_handler
         self.full_path_name = full_path_name
+        self.module_dirs = module_dirs
         self.closeHandlers = set()
         self.test_units = {}
+        self.module_paths = {}
         self.bus = None
         self.answer_handler = None
         self.is_running = False  # a flag to exit the execution loop, when running
@@ -137,6 +140,8 @@ class EOLClass(metaclass=ABCMeta):
         return format_msgs(data_bytes, id)
 
     def displayWrite(self, text, cmd=None):
+        if not self.msg_handler:  # if the EOLClass was started standalone
+            return
         msg = {
             "command": "serDisplayWrite",
             "data": text,
@@ -150,6 +155,8 @@ class EOLClass(metaclass=ABCMeta):
         )
 
     def msgBox(self, typeOfBox, title, text, handler, default="OK"):
+        if not self.msg_handler:  # if the EOLClass was started standalone
+            return
         self.answer_handler = handler
         typeOfBox = typeOfBox.lower()
         if typeOfBox == "alert":
@@ -180,6 +187,8 @@ class EOLClass(metaclass=ABCMeta):
 
     ##### new commands  ##
     def send_value(self, name, new_Value):
+        if not self.msg_handler:  # if the EOLClass was started standalone
+            return
         self.msg_handler.queue_event(
             None,
             defaults.MSG_SOCKET_MSG,
@@ -190,6 +199,8 @@ class EOLClass(metaclass=ABCMeta):
         )
 
     def eollist(self, title, items):
+        if not self.msg_handler:  # if the EOLClass was started standalone
+            return
         msg = {"title": title, "items": items}
         self.msg_handler.queue_event(
             None,
@@ -198,6 +209,8 @@ class EOLClass(metaclass=ABCMeta):
         )
 
     def setStatusIcons(self, states):
+        if not self.msg_handler:  # if the EOLClass was started standalone
+            return
         msg = {"states": states}
         self.msg_handler.queue_event(
             None,
@@ -271,3 +284,55 @@ class EOLClass(metaclass=ABCMeta):
     #### the test routines
     def execute_unit(self):
         pass
+
+    def create_module(self, name: str, module_name: str):
+        """
+        scans all module dirs if the wanted module is in
+        """
+        instance = None
+        if module_name not in self.module_paths:
+            full_module_name = "ldm_" + module_name + ".py"
+            for dir in self.module_dirs:
+                for file_name in os.listdir(dir):
+                    if file_name == full_module_name:
+                        self.module_paths[module_name] = {
+                            "name": full_module_name,
+                            "path": os.path.join(dir, full_module_name),
+                        }
+                        break
+        if module_name in self.module_paths:
+            module_location = self.module_paths[module_name]
+
+            try:
+
+                module_spec = importlib.util.spec_from_file_location(
+                    module_location["name"],
+                    module_location["path"],
+                    submodule_search_locations=[
+                        os.path.dirname(os.path.abspath(__file__))
+                    ],
+                )
+                my_module = importlib.util.module_from_spec(module_spec)
+                module_spec.loader.exec_module(my_module)
+                instance = my_module.EOLModule(name)
+
+            except Exception as e:
+                print(f"Can't load plugin {module_name}:{str(e)}")
+                traceback.print_exc(file=sys.stdout)
+        return instance
+
+
+if __name__ == "__main__":
+    print("geht 1")
+    eolclass = EOLClass(
+        None,
+        "/home/steffen/Desktop/workcopies/labdash_internal/modules/",
+        ["/home/steffen/Desktop/workcopies/labdash_internal/modules/"],
+    )
+    print("geht 2")
+    mrs = eolclass.create_module("A65", "mrs")
+    print("geht 3")
+    if mrs:
+        print("Wahnsinn!")
+    mrs.flash(None)
+    print(mrs.name)

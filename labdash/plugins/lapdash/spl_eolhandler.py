@@ -43,12 +43,12 @@ class SplPlugin(SplThread):
 	def __init__(self, modref):
 		''' inits the plugin
 		'''
-		
-		''' no config needed in this module
-		self.config = JsonStorage('EpaHandler', 'backup', "config.json", {
-			}
-		)
-		'''
+
+		self.config = JsonStorage('eolhandler', 'backup', "config.json",
+			{
+				'modules_dir': [os.path.realpath(os.path.join(self.program_dir,'../../../modules/'))]
+			})
+
 		self.modref = modref
 
 		# do the plugin specific initialisation first
@@ -209,7 +209,7 @@ class SplPlugin(SplThread):
 				self.instance.stop()
 				self.instance = None
 			module_spec.loader.exec_module(my_module)
-			self.instance = my_module.EOL(self.modref.message_handler,eol_info['path'])
+			self.instance = my_module.EOL(self.modref.message_handler,eol_info['path'],self.config['modules_dir'])
 			self.eols[eol_info['file_id']]['instance'] =self.instance # ? I don't know for that might be used later, but I just keep it in :-)
 			self.instance.run()
 		except Exception as e:
