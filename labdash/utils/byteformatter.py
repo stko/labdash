@@ -65,6 +65,11 @@ def format_msgs(data_bytes, format_str):
         else:
             value = values[0]
         return value, raw
+    if data_type == "jb" or data_type == "e":
+        raw = int.from_bytes(message_data_bytes, byteorder="little", signed=False)
+        values = unit.split("&")
+        value = values[raw]
+        return value, raw
     if data_type == "a":
         bytearray_message = bytearray(message_data_bytes)
         return bytearray_message.decode("utf-8"), bytearray_message

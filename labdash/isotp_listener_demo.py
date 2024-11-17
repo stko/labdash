@@ -27,7 +27,7 @@ import time
 import can
 
 # isotp_listener itself
-import isotp_listener
+from labdash import isotp_listener
 
 # the global socket
 bustype = 'socketcan'

@@ -6,7 +6,7 @@ import sys
 import os
 import threading
 from abc import ABCMeta, abstractmethod
-import defaults
+from labdash import defaults
 
 class SplThread(metaclass=ABCMeta):
 	'''Partly abstract class to implement threading & message handling

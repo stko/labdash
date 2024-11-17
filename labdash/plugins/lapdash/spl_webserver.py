@@ -10,7 +10,7 @@ import webbrowser
 
 import socket
 
-from jsonstorage import JsonStorage
+from labdash.jsonstorage import JsonStorage
 from flask import Flask, render_template, send_from_directory, request
 from werkzeug.datastructures import Headers
 from flask_sockets import Sockets, Rule
@@ -20,16 +20,9 @@ from geventwebsocket.handler import WebSocketHandler
 from pprint import pprint
 
 from io import StringIO
-from splthread import SplThread
-import defaults
+from labdash.splthread import SplThread
+from labdash import defaults
 
-
-# Add the directory containing your module to the Python path (wants absolute paths)
-
-ScriptPath = os.path.realpath(os.path.join(
-	os.path.dirname(__file__), "../common"))
-
-sys.path.append(os.path.abspath(ScriptPath))
 
 # own local modules
 

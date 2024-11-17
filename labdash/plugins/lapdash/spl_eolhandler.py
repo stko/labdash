@@ -3,11 +3,11 @@
 
 
 # Standard module
-from messagehandler import Query
+from labdash.messagehandler import Query
 
-import defaults
-from splthread import SplThread
-from jsonstorage import JsonStorage
+from labdash import defaults
+from labdash.splthread import SplThread
+from labdash.jsonstorage import JsonStorage
 import sys
 import os
 import ssl
@@ -22,17 +22,11 @@ from io import StringIO
 import threading
 import uuid
 from pprint import pprint
-import proglogger
+from labdash import proglogger
 
 logger = proglogger.getLogger(__name__)
 # Non standard modules (install with pip)
 
-ScriptPath = os.path.realpath(os.path.join(
-	os.path.dirname(__file__), "../common"))
-
-
-# Add the directory containing your module to the Python path (wants absolute paths)
-sys.path.append(os.path.abspath(ScriptPath))
 # own local modules
 
 
@@ -46,7 +40,7 @@ class SplPlugin(SplThread):
 
 		self.config = JsonStorage('eolhandler', 'backup', "config.json",
 			{
-				'modules_dir': [os.path.realpath(os.path.join(self.program_dir,'../../../modules/'))]
+				'modules_dir': []
 			})
 
 		self.modref = modref
@@ -209,7 +203,7 @@ class SplPlugin(SplThread):
 				self.instance.stop()
 				self.instance = None
 			module_spec.loader.exec_module(my_module)
-			self.instance = my_module.EOL(self.modref.message_handler,eol_info['path'],self.config['modules_dir'])
+			self.instance = my_module.EOL(self.modref.message_handler,eol_info['path'],self.config.read('modules_dir'))
 			self.eols[eol_info['file_id']]['instance'] =self.instance # ? I don't know for that might be used later, but I just keep it in :-)
 			self.instance.run()
 		except Exception as e:

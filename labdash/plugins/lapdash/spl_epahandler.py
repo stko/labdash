@@ -3,11 +3,11 @@
 
 
 # Standard module
-from messagehandler import Query
+from labdash.messagehandler import Query
 
-import defaults
-from splthread import SplThread
-from jsonstorage import JsonStorage
+from labdash import defaults
+from labdash.splthread import SplThread
+from labdash.jsonstorage import JsonStorage
 import sys
 import os
 import ssl
@@ -22,17 +22,12 @@ from io import StringIO
 import threading
 import uuid
 from pprint import pprint
-import proglogger
+from labdash import proglogger
 
 logger = proglogger.getLogger(__name__)
 # Non standard modules (install with pip)
 
-ScriptPath = os.path.realpath(os.path.join(
-	os.path.dirname(__file__), "../common"))
 
-
-# Add the directory containing your module to the Python path (wants absolute paths)
-sys.path.append(os.path.abspath(ScriptPath))
 # own local modules
 
 

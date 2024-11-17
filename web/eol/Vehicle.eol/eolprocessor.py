@@ -1,4 +1,4 @@
-from eolclass import EOLClass
+from labdash.eolclass import EOLClass
 
 
 

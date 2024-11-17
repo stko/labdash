@@ -7,7 +7,7 @@ import os
 import threading
 import time
 from abc import ABCMeta, abstractmethod
-import defaults
+from labdash import defaults
 import traceback
 from bitstring import BitArray  # nice module for bit wise operations
 

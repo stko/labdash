@@ -3,12 +3,12 @@
 
 import time
 import can
-from jsonstorage import JsonStorage
+from labdash.jsonstorage import JsonStorage
 from datetime import datetime
 import threading
 import queue
 
-import isotp_listener
+from labdash import isotp_listener
 
 """Wrapper function to capsulate the real available can interfaces from a generic bus abbitration to make the scripts independent from the real existing hardware
 

@@ -13,14 +13,8 @@ import re
 # Non standard modules (install with pip)
 
 
-ScriptPath = os.path.realpath(os.path.join(
-	os.path.dirname(__file__), "../common"))
-
-
-# Add the directory containing your module to the Python path (wants absolute paths)
-sys.path.append(os.path.abspath(ScriptPath))
 # own local modules
-from jsonstorage import JsonStorage
+from labdash.jsonstorage import JsonStorage
 
 class PluginManager():
 	''' loads all plugins

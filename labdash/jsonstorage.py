@@ -3,8 +3,8 @@
 
 import os
 import json
-import proglogger
-from directorymapper import DirectoryMapper
+from labdash import proglogger
+from labdash.directorymapper import DirectoryMapper
 
 logger = proglogger.getLogger(__name__)
 
