@@ -4,7 +4,7 @@
 import queue
 from threading import Thread, Lock
 
-import defaults
+import labdash.defaults
 
 
 class EventListener:

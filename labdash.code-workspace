@@ -4,7 +4,7 @@
 			"path": "."
 		},
 		{
-			"path": "../labdash_internal"
+			"path": "../../gitlab/inhouse/labdash_internal"
 		}
 	],
 	"settings": {}

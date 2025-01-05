@@ -1,4 +1,4 @@
-from ldmclass import LDMClass
+from labdash.ldmclass import LDMClass
 
 
 

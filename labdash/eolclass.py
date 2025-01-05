@@ -8,10 +8,10 @@ import os
 import threading
 import time
 from abc import ABCMeta, abstractmethod
-import defaults
+from labdash import defaults
 import traceback
 from bitstring import BitArray  # nice module for bit wise operations
-from utils.byteformatter import format_msgs
+from labdash.utils.byteformatter import format_msgs
 import oyaml
 
 

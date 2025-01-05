@@ -1,4 +1,4 @@
-from ldcanlisten import LDCANListen, rcv_collect
+from labdash.ldcanlisten import LDCANListen, rcv_collect
 from abc import ABCMeta, abstractmethod
 
 class LDModule(metaclass=ABCMeta):

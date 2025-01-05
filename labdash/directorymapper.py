@@ -3,7 +3,7 @@
 
 import os
 import json
-import proglogger
+from labdash import proglogger
 
 logger = proglogger.getLogger(__name__)
 

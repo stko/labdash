@@ -1,3 +1,3 @@
 cd labdash
-..\.venv\Scripts\python labdash.py
+..\.venv\Scripts\python -m labdash.labdash
 cd ..

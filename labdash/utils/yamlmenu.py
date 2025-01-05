@@ -3,7 +3,7 @@ import glob
 #import collections
 
 import oyaml
-from ldmclass import LDMClass
+from labdash.ldmclass import LDMClass
 
 class YAMLMenu:
     ''' Helper class to build the content out of a nested yaml file definition instead if hardcode everything'''
