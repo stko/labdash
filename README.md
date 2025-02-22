@@ -8,6 +8,21 @@ LabDash also covers the data transfer between page and software, so it takes the
 
 By that the UI does not need to know the program internas and can be generic, and the application can concentrate on the pure data I/O and leaves the UI layout to the web designer.
 
+## Installation
+
+As Labdash can serve some functionalities to other programs, it's set up as a python module and runs also as a module
+
+To install , use
+
+    git clone https://github.com/stko/labdash.git
+    cd labdash
+    python3 -m venv .venv
+    source .venv/bin/activate
+    pip install .
+
+to run it
+
+    python -m lapdash.labdash
 
 ## Once upon a time
 Labdash can be seen as a rebirth of [OOBD](https://oobd.org). It uses the same princible and a part of the codebase, but it's much  slimmer and modernized by replacing the old lua compiling process by a JIT python runtime
