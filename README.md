@@ -22,7 +22,7 @@ To install , use
 
 to run it
 
-    python -m lapdash.labdash
+    python -m labdash.labdash
 
 ## Once upon a time
 Labdash can be seen as a rebirth of [OOBD](https://oobd.org). It uses the same princible and a part of the codebase, but it's much  slimmer and modernized by replacing the old lua compiling process by a JIT python runtime
