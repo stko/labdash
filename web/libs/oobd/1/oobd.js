@@ -467,7 +467,7 @@ if (typeof Oobd == "undefined") {
 						if (obj.type == "PAGE") {
 							if (typeof Oobd.openPage != "undefined" && typeof obj.config.name != "undefined" && obj.config.name.length > 0) {
 								console.log("try to OpenPage");
-								Oobd.openPage(obj.config.name);
+								Oobd.openPage(obj.config.name,obj.config);
 								// as OpenPages resets the list of available visualizers also for the Dashboard, we have to redraw the dashboard after each new page
 								if (typeof Oobd.fillDashboard != "undefined") {
 									Oobd.fillDashboard();

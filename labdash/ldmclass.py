@@ -108,15 +108,22 @@ class LDMClass(metaclass=ABCMeta):
 
     # implementation of the old OOBD lua interface commands
 
-    def openPage(self, name):
+    def openPage(self, name, uioptions=None, uicss=""):
+        msg = {
+            "name": name,
+        }
+        if uioptions:
+            msg["uioptions"] = uioptions
+        if uicss:
+            msg["uicss"] = uicss
         self.msg_handler.queue_event(
             None,
             defaults.MSG_SOCKET_MSG,
-            {"type": defaults.CM_PAGE, "config": {"name": name}},
+            {"type": defaults.CM_PAGE, "config": msg},
         )
 
     def addElement(
-        self, tooltip, name, value, oobdElementFlags=None, optid=None, optTable=None
+        self, tooltip, name, value, oobdElementFlags=None, optid=None, optTable=None, uioptions=None, uicss=""
     ):
         msg = {
             "tooltip": tooltip,
@@ -129,6 +136,10 @@ class LDMClass(metaclass=ABCMeta):
             msg["name"] += ":" + optid
         if optTable:
             msg["opts"] = optTable
+        if uioptions:
+            msg["uioptions"] = uioptions
+        if uicss:
+            msg["uicss"] = uicss
         self.msg_handler.queue_event(
             None,
             defaults.MSG_SOCKET_MSG,
