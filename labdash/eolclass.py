@@ -291,15 +291,18 @@ class EOLClass(metaclass=ABCMeta):
         """
         instance = None
         if module_name not in self.module_paths:
-            full_module_name = "ldm_" + module_name + ".py"
+            full_module_name = "ldm_" + module_name 
+            full_module_file_name = full_module_name+ ".py"
             for dir in self.module_dirs:
                 for file_name in os.listdir(dir):
                     if file_name == full_module_name:
-                        self.module_paths[module_name] = {
-                            "name": full_module_name,
-                            "path": os.path.join(dir, full_module_name),
-                        }
-                        break
+                        full_module_path=os.path.join(dir,full_module_name, full_module_file_name)
+                        if os.path.isfile(full_module_path):
+                            self.module_paths[module_name] = {
+                                "name": full_module_name,
+                                "path": full_module_path,
+                            }
+                            break
         if module_name in self.module_paths:
             module_location = self.module_paths[module_name]
 

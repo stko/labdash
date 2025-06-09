@@ -1,5 +1,6 @@
 from labdash.ldcanlisten import LDCANListen, rcv_collect
 from abc import ABCMeta, abstractmethod
+from collections.abc import Callable
 
 class LDModule(metaclass=ABCMeta):
     """Partly abstract class as base class for LabDash modules"""
@@ -21,7 +22,7 @@ class LDModule(metaclass=ABCMeta):
     
     
     @abstractmethod
-    def flash(self,url:str,flashing_process_indicator:function):
+    def flash(self,url:str,flashing_process_indicator:Callable):
         """
         url: URL for download
         callback function
@@ -33,7 +34,7 @@ class LDModule(metaclass=ABCMeta):
         """
         pass
 
-    def parameterizing(self,tcpc:dict,parameter_template: dict,external_values: dict, parameter_set_selection:function):
+    def parameterizing(self,tcpc:dict,parameter_template: dict,external_values: dict, parameter_set_selection:Callable):
         """
         tcpc: standarized vehicle option information dictionary
         parameter_template: the parameters of that module as template 
