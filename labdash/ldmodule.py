@@ -6,7 +6,7 @@ class LDModule(metaclass=ABCMeta):
     """Partly abstract class as base class for LabDash modules"""
     def __init__(self,name:str) -> None:
         self._name=name
-
+        self.closeHandlers = set()
     @property
     def name(self):
         return self._name
@@ -57,3 +57,14 @@ class LDModule(metaclass=ABCMeta):
         scans on actual bus for modules in the range, if given
         returns a list of records containing id as bytearray and name as string, if available
         '''
+        
+    
+    def add_close_handler(self, close_handler):
+        self.closeHandlers.add(close_handler)
+    
+    def stop(self, timeout=0):
+        """stops the child thread. If timeout > 0, it will wait timeout secs for the thread to finish"""
+
+        for handler in self.closeHandlers:
+            print("close handler")
+            handler()  # call all close handlers

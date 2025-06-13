@@ -1,0 +1,8 @@
+python-can
+oyaml
+bitstring
+flask
+flask-sockets
+lxml
+python-can
+canopen

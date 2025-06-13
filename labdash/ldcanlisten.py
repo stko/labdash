@@ -248,7 +248,7 @@ def rcv_listen(bus, can_ids=None, timeout=0.01, extended=False, collect_time=0):
 def rcv_collect(can_id: int, can_mask: int = 0, age_ms: int = 0):
     """
     :param int can_id: can id to filter for
-    :param int can_mask: if set, used as mask to filter for can ids. (received_id & can_mask == can_id)
+    :param int/list can_mask: if set, used as mask to filter for can ids. (received_id & can_mask == can_id). Can also be a list of can_mask, where any of would need to fit
     :param float age_ms: if set as ms, only the msgs are returned which are not older as age
 
     :return list: list of all collected msg IDs and its message
@@ -260,8 +260,17 @@ def rcv_collect(can_id: int, can_mask: int = 0, age_ms: int = 0):
             if can_id != id:
                 continue
         else:
-            if id & can_mask != can_id:
-                continue
+            if isinstance(can_mask,list):
+                no_match=True
+                for c_mask in can_mask:
+                    if id & can_mask == can_id:
+                        no_match=False
+                        break
+                if no_match:
+                    continue
+            else:
+                if id & can_mask != can_id:
+                    continue
         for msg_data in msgs:
             if age_ms == 0 or msg_data["timestamp"] >= act_timestamp:
                 if id not in result:

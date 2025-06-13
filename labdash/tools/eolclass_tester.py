@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import os
 import sys
 
 from rich.prompt import Confirm
 from rich.console import Console
 from labdash import eolclass
+from labdash.directorymapper import DirectoryMapper
 
 
 class CLI:
@@ -20,13 +22,16 @@ class CLI:
             module_dir,
             [module_dir],
         )
-        self.actual_module=None
+        self.loaded_module_driver=None
+        self.found_modules={}
         self.console = Console()
         self.end_flag = False
         self.cmds = {
             "quit": {"help": "Quits the program", "f": self.quit},
             "help": {"help": "print this help", "f": self.help},
-            "load": {"load": "load the given module by its name as current module", "f": self.load},
+            "load": {"help": "load the given module by its name as current module", "f": self.load},
+            "scan": {"help": "let the module scan the bus", "f": self.scan},
+            "flash": {"help": "flashes the firmware defined by the download url parameter", "f": self.flash},
         }
         while not self.end_flag:
             input = self.console.input("Your command (enter for help): ")
@@ -56,14 +61,48 @@ class CLI:
             self.console.print(f" [bold yellow]{cmd}[/]\t{info["help"]}")
 
     def quit(self, args: list):
+        if self.loaded_module_driver:
+            self.loaded_module_driver.stop()
         self.end_flag = True
     
     def load(self, args: list):
         if len(args)!= 1:
             self.console.print("error: missing module name to load- canceled ")
-        self.console.print(f"try to load{args[0]}")
-        self.actual_module=self.module_handler.create_module(f"Module {args[0]}", args[0])
+            return
+        if self.loaded_module_driver:
+            self.loaded_module_driver.stop()
+            self.found_modules={}
+        self.loaded_module_driver=self.module_handler.create_module(f"Module {args[0]}", args[0])
+        if self.loaded_module_driver:
+            self.console.print(f"Module {args[0]} loaded")
+        else:
+            self.console.print(f"Error:  Failed to load Module {args[0]}")
+ 
+    def scan(self, args: list):
+        if not self.loaded_module_driver:
+            self.console.print("No module loaded - Load a module first to scan")
+            return
+        self.found_modules=self.loaded_module_driver.scan()
         
+    def flash(self, args: list):
+        if len(args)!= 1:
+            self.console.print("error: missing module name to load- canceled ")
+            return
+        if not self.loaded_module_driver:
+            self.console.print("No driver loaded - Load a module driver first to scan")
+            return
+        if not self.found_modules:
+            self.console.print("No modules loaded - please check your setup and retry")
+            return
+        first_found_module=list(self.found_modules.values())[0]
+        if not first_found_module.hardware_ok():
+            self.console.print("No valid Module hardware found - please check your setup and retry")
+            return
+        self.console.print("Try to flash ")
+        self.loaded_module_driver.flash(first_found_module, args[0],self.flash_progress_indicator)
+    
+    def flash_progress_indicator(self, percentage):
+        print(f"Flash progress {percentage}%")
 
     def get_args_int(self, args: list) -> list:
         numeric_args = []
@@ -91,5 +130,13 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    DirectoryMapper(
+        os.path.abspath(os.path.dirname(__file__)),
+        {
+            "backup": "volumes/backup",
+            "runtime": "volumes/runtime",
+            "tmpfs": "volumes/tmpfs",
+        },
+    )
 
     cli = CLI(args.module)

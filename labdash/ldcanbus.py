@@ -6,7 +6,8 @@ import sys
 import os
 import can
 #from uds import Uds
-from  jsonstorage import JsonStorage
+from labdash.jsonstorage import JsonStorage
+
 from datetime import datetime
 import traceback
 
