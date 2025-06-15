@@ -32,6 +32,7 @@ class CLI:
             "load": {"help": "load the given module by its name as current module", "f": self.load},
             "scan": {"help": "let the module scan the bus", "f": self.scan},
             "flash": {"help": "flashes the firmware defined by the download url parameter", "f": self.flash},
+            "erase": {"help": "erase the eeprom", "f": self.erase},
         }
         while not self.end_flag:
             input = self.console.input("Your command (enter for help): ")
@@ -100,6 +101,20 @@ class CLI:
             return
         self.console.print("Try to flash ")
         self.loaded_module_driver.flash(first_found_module, args[0],self.flash_progress_indicator)
+    
+    def erase(self, args: list):
+        if not self.loaded_module_driver:
+            self.console.print("No driver loaded - Load a module driver first to scan")
+            return
+        if not self.found_modules:
+            self.console.print("No modules loaded - please check your setup and retry")
+            return
+        first_found_module=list(self.found_modules.values())[0]
+        if not first_found_module.hardware_ok():
+            self.console.print("No valid Module hardware found - please check your setup and retry")
+            return
+        self.console.print("Try to erase ")
+        self.loaded_module_driver.erase(first_found_module)
     
     def flash_progress_indicator(self, percentage):
         print(f"Flash progress {percentage}%")
