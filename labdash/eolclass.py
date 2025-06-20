@@ -46,6 +46,7 @@ class EOLClass(metaclass=ABCMeta):
         self.module_paths = {}
         self.bus = None
         self.answer_handler = None
+        self.node_id = None
         self.is_running = False  # a flag to exit the execution loop, when running
         self.waiting_for_answer = (
             False  # a flag to exit the execution loop, when running
@@ -285,18 +286,21 @@ class EOLClass(metaclass=ABCMeta):
     def execute_unit(self):
         pass
 
-    def create_module(self, name: str, module_name: str):
+    def create_module(self, name: str, module_name: str, node_id=None):
         """
         scans all module dirs if the wanted module is in
         """
+        self.node_id = node_id
         instance = None
         if module_name not in self.module_paths:
-            full_module_name = "ldm_" + module_name 
-            full_module_file_name = full_module_name+ ".py"
+            full_module_name = "ldm_" + module_name
+            full_module_file_name = full_module_name + ".py"
             for dir in self.module_dirs:
                 for file_name in os.listdir(dir):
                     if file_name == full_module_name:
-                        full_module_path=os.path.join(dir,full_module_name, full_module_file_name)
+                        full_module_path = os.path.join(
+                            dir, full_module_name, full_module_file_name
+                        )
                         if os.path.isfile(full_module_path):
                             self.module_paths[module_name] = {
                                 "name": full_module_name,

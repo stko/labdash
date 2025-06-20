@@ -5,12 +5,11 @@ from collections.abc import Callable
 
 class LDMNotImplemented(Exception):
     """
-    the abstract model concept requires to implement all methods. So if a implementation does not support a
-    particular method, it has to throw this LDMNotImplemented inside its method implementation to indicate that a unsupported
+    the abstract model concept requires to implement all methods. So if a
+    implementation does not support a     particular method, it has to throw this
+    LDMNotImplemented inside its method implementation to indicate that a unsupported
     method is called
     """
-
-    pass
 
 
 class LDMFlashError(Exception):
@@ -36,21 +35,19 @@ class LDModule(metaclass=ABCMeta):
     def name(self):
         return self._name
 
-    @property  
-    @abstractmethod  
+    @property
+    @abstractmethod
     def bus(self):
         """
         returns the class specific communication bus, if any
         """
-        pass
 
-    @property  
+    @property
     @abstractmethod
-    def protocol():
+    def protocol(self):
         """self
         returns the class specific protocol driver, if any
         """
-        pass
 
     @abstractmethod
     def hardware_ok(self):
@@ -58,7 +55,6 @@ class LDModule(metaclass=ABCMeta):
         returns true if the software decide that it's capable
         to handle the connected module
         """
-        pass
 
     @abstractmethod
     def flash(self, url: str, flashing_process_indicator: Callable):
@@ -68,10 +64,9 @@ class LDModule(metaclass=ABCMeta):
         flashing_process_indicator(progress_rate:int)
         progress_rate: Percentage 0-100
 
-        In case of error, it raised a LDMFlashError exception
+        In case of error, it raises a LDMFlashError exception
 
         """
-        pass
 
     @abstractmethod
     def parameterizing(
@@ -92,27 +87,34 @@ class LDModule(metaclass=ABCMeta):
         parameter set out of it.
         It returns the selected name
 
-        In case of error, it raised a LDMParameterError exception
+        In case of error, it raises a LDMParameterError exception
 
         """
-        pass
 
     @abstractmethod
-    def scan(self, range=[]) -> list:
+    def scan(self, scan_range: list = None) -> list:
         """
         scans on actual bus for modules in the range, if given
         returns a list of records containing id as bytearray and name as string, if available
 
-        In case of error, it raised a FLASH_PARAMETER exception
+        In case of error, it raises a FLASH_PARAMETER exception
         """
 
     @abstractmethod
-    def erase(self, range=[]) -> bool:
+    def erase(self, scan_range: list = None) -> bool:
         """
         scans on actual bus for modules in the range, if given
         returns a list of records containing id as bytearray and name as string, if available
 
-        In case of error, it raised a LDMEraseError exception
+        In case of error, it raises a LDMEraseError exception
+        """
+
+    @abstractmethod
+    def write_parameters(self, parameters: dict) -> bool:
+        """
+        writes the given parameters to the module
+
+        In case of error, it raises a LDMParameterError exception
         """
 
     def add_close_handler(self, close_handler):
