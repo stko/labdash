@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+if __name__ == "__main__":
+    from pathlib import Path
+    import sys
 
+    path_root = Path(__file__).parents[2]
+    sys.path.append(str(path_root))
+    print(sys.path)
 import time
 import os
 from labdash.directorymapper import DirectoryMapper
