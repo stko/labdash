@@ -50,15 +50,19 @@ class LDModule(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def hardware_ok(self):
+    def hardware_ok(self, ecu):
         """
         returns true if the software decide that it's capable
         to handle the connected module
+
+        ecu: identifier of which of the found ecu modules shall be used
+
         """
 
     @abstractmethod
-    def flash(self, url: str, flashing_process_indicator: Callable):
+    def flash(self, ecu, url: str, flashing_process_indicator: Callable):
         """
+        ecu: identifier of which of the found ecu modules shall be used
         url: URL for download
         callback function
         flashing_process_indicator(progress_rate:int)
@@ -71,12 +75,14 @@ class LDModule(metaclass=ABCMeta):
     @abstractmethod
     def parameterizing(
         self,
+        ecu,
         tcpc: dict,
         parameter_template: dict,
         external_values: dict,
         parameter_set_selection: Callable,
     ) -> bool:
         """
+        ecu: identifier of which of the found ecu modules shall be used
         tcpc: standarized vehicle option information dictionary
         parameter_template: the parameters of that module as template
         external_values: additional information like VIN or date time
@@ -97,7 +103,21 @@ class LDModule(metaclass=ABCMeta):
         scans on actual bus for modules in the range, if given
         returns a list of records containing id as bytearray and name as string, if available
 
+        the id can then be used further to get the ecu descriptor
         In case of error, it raises a FLASH_PARAMETER exception
+        """
+
+    @abstractmethod
+    def ecu(self, id):
+        """
+        returns the ecu descriptor given by id
+
+        a module driver may found more as one connected physical ECU.
+        but to control just a single ECU, a handler for that is needed
+
+
+
+
         """
 
     @abstractmethod
