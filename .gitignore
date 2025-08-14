@@ -4,3 +4,4 @@ volumes
 labdash/plugins/company/
 build
 .venv
+labdash/dist/

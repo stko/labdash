@@ -1,3 +1,6 @@
+rem Labdash muss per "pip install ." installiert sein, sonst geht's irgendwie nicht ?!?
+
+
 pyinstaller labdash.py ^
 --log-level WARN ^
 --collect-submodules labdash ^
