@@ -1,6 +1,6 @@
 # LabDash - The Laboratory Dashboard
 
-LabDash is, like many others, a python framework to generate a UI. But not like e.g. Qt, this generation is not done at compile time, but at runtime. It's also not a normal GUI window like e.g. Tinker, it is a webpage instead, where LabDash acts as the webserver to provides the page to the browser.
+LabDash is, like many others, a python framework to generate a UI. But not like e.g. Qt, this generation is not done at compile time, but at runtime. It's also not a normal GUI window like e.g. Tkinter, it is a webpage instead, where LabDash acts as the webserver to provides the page to the browser.
 
 Through the webserver concept the display can be far away from the physical application, which can be e.g. build in as a black box an any industrial controls.
 
