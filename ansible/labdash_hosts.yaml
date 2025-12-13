@@ -1,0 +1,12 @@
+quemu_devices:
+  hosts:
+    localhost:
+      ansible_user: pi
+      ansible_password: raspberry
+      ansible_ssh_port: 5022
+labdash_devices:
+  hosts:
+    rpi-z-labdash:
+      ansible_user: pi
+      ansible_password: raspberry
+      ansible_ssh_port: 22

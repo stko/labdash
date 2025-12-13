@@ -93,6 +93,11 @@ then
 	/home/$USER/${APPLICATION}/.venv/bin/python "/media/usb/${APPLICATION}/autorun.py" <1>
 fi
 cd /home/$USER
+
+
+
+ECHO "DIESER BEFEHLER IST NOCH NICHT FERTIG - BITTE NICHT VERWENDEN"
+exit 1
 /home/$USER/${APPLICATION}/.venv/bin/python "/media/usb/${APPLICATION}/autorun.py" <1>
 
 

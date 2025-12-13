@@ -1,0 +1,159 @@
+---
+- name: Deploy Labdash on Raspberry Pi
+  hosts: quemu_devices
+  become: yes
+
+  vars_prompt:
+
+    - name: wlanssid
+      prompt: What is your WiFi SSID?
+      private: false
+      default: SKWLANAP2
+
+
+    - name: wlanpassphrase
+      prompt: What is your WiFi passphrase?
+      private: false
+
+  vars:
+    user: pi
+    home_dir: "/home/pi"
+    module_dir: "{{ home_dir }}/installdir"
+    labdash_dir: "{{ module_dir }}/labdash"
+    docker_compose_version: "v2.23.3"
+    ansible_python_interpreter: /usr/bin/python3
+
+
+  tasks:
+
+    #disable while testing & debugging
+    - name: Update & upgrade packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+        cache_valid_time: 3600
+
+    - name: Install required packages
+      apt:
+        name:
+          - git
+          - python3-venv
+          - python3-pip
+          - python3-virtualenv
+          - libxml2-dev
+          - libxslt1-dev
+          - python3-flask-sockets
+          - python3-setuptools
+
+
+        state: present
+
+    # in case of re-deployment, remove existing dir
+    - name: Remove existing dir if exists
+      ansible.builtin.file:
+        state: absent
+        path: "{{ module_dir }}"
+
+
+    - name: ensures {{ module_dir }} dir exists
+      file: 
+        path: "{{ module_dir }}"
+        state: directory
+      become: yes
+      become_user: '{{ user }}'
+
+
+    - name: Clone Labdash repositories
+      git:
+        repo: "{{ item.repo }}"
+        dest: "{{ module_dir }}/{{ item.name }}"
+      
+      become: yes
+      become_user: '{{ user }}'
+      loop:
+        - { name: labdash, repo: "https://github.com/stko/labdash.git" }
+
+
+    # - name: Install Python dependencies
+    #   ansible.builtin.pip:
+    #     requirements: "{{ labdash_dir }}/requirements_raw.txt"
+    #     virtualenv: "{{ labdash_dir }}/.venv"
+    #     virtualenv_python: python3
+    #     virtualenv_site_packages: yes
+    #     extra_args: --no-cache-dir
+    #   become: yes
+    #   become_user: '{{ user }}'
+    #   register: pip_result
+
+    # - name: Install editable dependencies
+    #   ansible.builtin.pip:
+    #     name: "{{ item }}"
+    #     virtualenv: "{{ labdash_dir }}/.venv"
+    #     virtualenv_python: python3
+    #     virtualenv_site_packages: yes
+    #     editable: yes
+    #   loop:
+    #     - "{{ module_dir }}/cnclib"
+    #     - "{{ module_dir }}/tcpc"
+    #     - "{{ module_dir }}/MTDS_modify"
+    #     - "{{ module_dir }}/mtqr/python"
+    #     - "{{ module_dir }}/labdash"
+
+
+
+    - name: Install Lapdash as module
+      ansible.builtin.pip:
+        name: "{{ labdash_dir }}"
+        virtualenv: "{{ labdash_dir }}/.venv"
+        virtualenv_python: python3
+        virtualenv_site_packages: yes
+        editable: yes
+
+
+
+    - name: Add a line to a file if the file does not exist, without passing regexp
+      ansible.builtin.lineinfile:
+        path: /etc/sysctl.d/98-rpi.conf
+        line: net.ipv4.ip_forward = 1
+        create: yes
+
+   
+   
+
+    - name: Enable SSH
+      ansible.builtin.shell: "raspi-config nonint do_ssh 0"
+ 
+   
+
+    - name: Setup WIFI
+      ansible.builtin.shell: "raspi-config nonint do_wifi_ssid_passphrase {{ wlanssid }} '{{ wlanpassphrase }}'"
+      tags:
+      - wifi
+ 
+
+    - name: Configure Labdash systemd service
+      copy:
+        dest: /etc/systemd/system/labdash.service
+        content: |
+          [Unit]
+          Description=Labdash Description
+          After=network.target
+
+          [Service]
+          ExecStart={{ labdash_dir }}/.venv/bin/python -m labdash.labdash
+          WorkingDirectory={{ labdash_dir }}
+          Restart=always
+          User={{ user }}
+
+          [Install]
+          WantedBy=multi-user.target
+
+
+
+    - name: Enable Labdash service
+      systemd:
+        name: labdash.service
+        enabled: yes
+        state: started
+
+
