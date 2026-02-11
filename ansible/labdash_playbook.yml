@@ -1,19 +1,9 @@
 ---
 - name: Deploy Labdash on Raspberry Pi
-  hosts: quemu_devices
+  hosts: labdash_devices
   become: yes
 
-  vars_prompt:
 
-    - name: wlanssid
-      prompt: What is your WiFi SSID?
-      private: false
-      default: SKWLANAP2
-
-
-    - name: wlanpassphrase
-      prompt: What is your WiFi passphrase?
-      private: false
 
   vars:
     user: pi
@@ -33,6 +23,7 @@
         upgrade: dist
         cache_valid_time: 3600
 
+
     - name: Install required packages
       apt:
         name:
@@ -44,6 +35,8 @@
           - libxslt1-dev
           - python3-flask-sockets
           - python3-setuptools
+          - can-utils
+
 
 
         state: present
@@ -125,11 +118,13 @@
  
    
 
-    - name: Setup WIFI
-      ansible.builtin.shell: "raspi-config nonint do_wifi_ssid_passphrase {{ wlanssid }} '{{ wlanpassphrase }}'"
-      tags:
-      - wifi
+#    - name: Set WIFI country
+#      ansible.builtin.shell: "raspi-config nonint do_wifi_country de"
+
  
+    - name: Create a hotspot
+      ansible.builtin.script: files/hotspot.sh
+
 
     - name: Configure Labdash systemd service
       copy:
