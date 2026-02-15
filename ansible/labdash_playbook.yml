@@ -10,7 +10,7 @@
     home_dir: "/home/pi"
     module_dir: "{{ home_dir }}/installdir"
     labdash_dir: "{{ module_dir }}/labdash"
-    docker_compose_version: "v2.23.3"
+    captive_portal_dir: "{{ module_dir }}/raspi-captive-portal"
     ansible_python_interpreter: /usr/bin/python3
 
 
@@ -65,6 +65,9 @@
       become_user: '{{ user }}'
       loop:
         - { name: labdash, repo: "https://github.com/stko/labdash.git" }
+        - { name: raspi-captive-portal, repo: "https://github.com/stko/raspi-captive-portal.git" }
+
+        
 
 
     # - name: Install Python dependencies
@@ -102,28 +105,47 @@
         virtualenv_site_packages: yes
         editable: yes
 
-
-
-    - name: Add a line to a file if the file does not exist, without passing regexp
-      ansible.builtin.lineinfile:
-        path: /etc/sysctl.d/98-rpi.conf
-        line: net.ipv4.ip_forward = 1
-        create: yes
-
-   
-   
-
     - name: Enable SSH
       ansible.builtin.shell: "raspi-config nonint do_ssh 0"
  
-   
+    - name: Install the captive portal files
+      copy: 
+        src: "{{ item.src }}" 
+        dest: "{{ item.dest }}"
+      loop:
+        - src: files/hostapd.conf
+          dest: "{{ captive_portal_dir }}/access-point"
+        - src: files/server.ts
+          dest: "{{ captive_portal_dir }}/server/src"
 
-#    - name: Set WIFI country
-#      ansible.builtin.shell: "raspi-config nonint do_wifi_country de"
 
- 
-    - name: Create a hotspot
-      ansible.builtin.script: files/hotspot.sh
+ # as ansible cannot directly loop over the files in a directory, we need to first get the list of files and then loop over it in the next step. The "ls --format=comma -d ..." command lists the .epd files in the internals directory and formats them as a comma-separated list, which is then registered in the internal_jobs variable.
+
+
+
+
+    - name: Copy internal jobs
+      when: internal_jobs is defined
+      copy:
+        src: "{{ item }}"
+        dest: "{{ labdash_dir }}/web/examples/"
+      with_items: "{{ internal_jobs.split(',') }}"
+
+    - name: Copy internal themes
+      when: internal_themes is defined
+      copy:
+        src: "{{ item }}"
+        dest: "{{ labdash_dir }}/web/theme/"
+      with_items: "{{ internal_themes.split(',') }}"
+
+
+
+
+    - name: Setup the captive portal
+    # the trick with "echo | ..." forces the setup.py into a non-interactive mode without any confirmation questions to run quiet inside the ansible script
+      ansible.builtin.shell: "echo | python setup.py"
+      args:
+        chdir: "{{ captive_portal_dir }}"
 
 
     - name: Configure Labdash systemd service
