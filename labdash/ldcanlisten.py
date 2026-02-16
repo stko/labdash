@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import os
 import time
 import can
 from labdash.jsonstorage import JsonStorage
@@ -21,7 +21,8 @@ thread = None
 bus = None
 
 challenge_response_protocol_queue = queue.Queue()
-challenge_response_protocols={}
+challenge_response_protocols = {}
+
 
 def LDCANListen(ldm_instance, port=0, bitrate=500000):
     # reads the config, if any
@@ -43,8 +44,14 @@ def LDCANListen(ldm_instance, port=0, bitrate=500000):
     )
     try:
         canports = config.read("canports")
+        # 	  on socketcan the can bus need to be setup beforehand, e.g. with:
+        bus_type = canports[port]["bustype"]
+        if bus_type == "socketcan":
+            os.system(
+                f'sudo ip link set {canports[port]["channel"]} up type can bitrate {bitrate}'
+            )
         bus = can.interface.Bus(
-            bustype=canports[port]["bustype"],
+            bustype=bus_type,
             channel=canports[port]["channel"],
             bitrate=bitrate,
         )
@@ -59,22 +66,23 @@ def LDCANListen(ldm_instance, port=0, bitrate=500000):
         print("Error:", str(ex))
         return None
 
-def configure_challenge_response_protocol(name: str, options: object=None):
+
+def configure_challenge_response_protocol(name: str, options: object = None):
     """adds challenge response protocol handlers, returns or modifies the actual options
 
     :param str name: the name (not dynamic yet, must be hardcoded available)
     :param obj options: handler specific set of options. If None, the function returns the actual option set
 
     :return obj options: if input options are None, the function returns the actual option set
-      """    
+    """
     if options:
         if name not in challenge_response_protocols:
-            if name=="isotp":
-                challenge_response_protocols[name]={
-                    "protocol":isotp_listener.Isotp_Listener(options),
+            if name == "isotp":
+                challenge_response_protocols[name] = {
+                    "protocol": isotp_listener.Isotp_Listener(options),
                     "queue": queue.Queue(),
-                    "busy":False
-                    }
+                    "busy": False,
+                }
                 return
             print(f"ERROR: {name} is an unknown challenge response protocol")
         else:
@@ -86,8 +94,9 @@ def configure_challenge_response_protocol(name: str, options: object=None):
         else:
             return challenge_response_protocols[name]["protocol"].get_options()
 
+
 # callback function for istotp_listener to allow to send own can messages
-def msg_send(can_id : int, data :bytearray,len: int, is_extended=False):
+def msg_send(can_id: int, data: bytearray, len: int, is_extended=False):
     try:
         msg = can.Message(arbitration_id=can_id, data=data[:len], is_extended_id=False)
         bus.send(msg)
@@ -96,77 +105,89 @@ def msg_send(can_id : int, data :bytearray,len: int, is_extended=False):
         print("Can't write to socket")
         return 1
 
-def uds_handler(request_type: isotp_listener.RequestType,  receive_buffer:isotp_listener.uds_buffer,  receive_len : int,  send_buffer : isotp_listener.uds_buffer):
-    send_len=0
+
+def uds_handler(
+    request_type: isotp_listener.RequestType,
+    receive_buffer: isotp_listener.uds_buffer,
+    receive_len: int,
+    send_buffer: isotp_listener.uds_buffer,
+):
+    send_len = 0
     print("receive")
     if request_type == isotp_listener.RequestType.Service:
-        name="isotp"
+        name = "isotp"
         if name not in challenge_response_protocols:
             print(f"ERROR: {name} is an unknown challenge response protocol")
             return send_len
-        busy=challenge_response_protocols[name]["busy"]
-        queue=challenge_response_protocols[name]["queue"]
+        busy = challenge_response_protocols[name]["busy"]
+        queue = challenge_response_protocols[name]["queue"]
         if busy:
-            queue.put({"type":"data","data":receive_buffer,"len":receive_len})
+            queue.put({"type": "data", "data": receive_buffer, "len": receive_len})
 
-    return send_len; # something went wrong, we should never be here..
+    return send_len
+    # something went wrong, we should never be here..
+
 
 def send_ticks():
-    '''
+    """
     send the timer tick to the C&R handlers
-    '''
+    """
     for challenge_response_protocol in challenge_response_protocols.values():
-        protocol=challenge_response_protocol["protocol"]
-        queue=challenge_response_protocol["queue"]
-        busy=challenge_response_protocol["busy"]
+        protocol = challenge_response_protocol["protocol"]
+        queue = challenge_response_protocol["queue"]
+        busy = challenge_response_protocol["busy"]
 
         if challenge_response_protocol["protocol"].tick(time.time()) and busy:
-            queue.put({"type":"timeout"})
+            queue.put({"type": "timeout"})
         else:
             if busy:
-                queue.put({"type":"wait"})
+                queue.put({"type": "wait"})
 
-def challenge_response_request(name:str, data : bytearray):
+
+def challenge_response_request(name: str, data: bytearray):
     if name not in challenge_response_protocols:
         print(f"ERROR: {name} is an unknown challenge response protocol")
         return None
-    protocol=challenge_response_protocols[name]["protocol"]
+    protocol = challenge_response_protocols[name]["protocol"]
     if protocol.busy():
         return {"error": "protocol busy", "data": None}
-    queue=challenge_response_protocols[name]["queue"]
+    queue = challenge_response_protocols[name]["queue"]
     with queue.mutex:
         queue.queue.clear()
-    challenge_response_protocols[name]["busy"]=True
-    protocol.send_telegram(data,len(data))
+    challenge_response_protocols[name]["busy"] = True
+    protocol.send_telegram(data, len(data))
     while True:
         try:
-            q=queue.get(timeout=0.1)
-            if q["type"]=="wait":
-                #print("wait")
+            q = queue.get(timeout=0.1)
+            if q["type"] == "wait":
+                # print("wait")
                 time.sleep(0.01)
                 continue
-            if q["type"]=="timeout":
+            if q["type"] == "timeout":
                 print("timeout queue")
-                challenge_response_protocols[name]["busy"]=False
+                challenge_response_protocols[name]["busy"] = False
                 return {"error": "timeout", "data": None}
-            if q["type"]=="data":
+            if q["type"] == "data":
                 print("data queue")
-                challenge_response_protocols[name]["busy"]=False
-                buffer = bytearray(isotp_listener.UDS_BUFFER_SIZE) # generate a copy of the data
-                buffer[:q["len"]] = q["data"]
-                nr_of_bytes=q["len"]
-                return {"error": "", "data": buffer,"len":nr_of_bytes}
-        #except queue.Empty:
-        except :
-                print("broken queue")
-                challenge_response_protocols[name]["busy"]=False
-                return {"error": "queue timeout", "data": None}
-   
+                challenge_response_protocols[name]["busy"] = False
+                buffer = bytearray(
+                    isotp_listener.UDS_BUFFER_SIZE
+                )  # generate a copy of the data
+                buffer[: q["len"]] = q["data"]
+                nr_of_bytes = q["len"]
+                return {"error": "", "data": buffer, "len": nr_of_bytes}
+        # except queue.Empty:
+        except:
+            print("broken queue")
+            challenge_response_protocols[name]["busy"] = False
+            return {"error": "queue timeout", "data": None}
 
-def forward_to_protocols(can_id : int, data : bytearray, nr_of_bytes: int):
+
+def forward_to_protocols(can_id: int, data: bytearray, nr_of_bytes: int):
     for challenge_response_protocol in challenge_response_protocols.values():
-        protocol=challenge_response_protocol["protocol"]
-        protocol.eval_msg( can_id , data , nr_of_bytes)
+        protocol = challenge_response_protocol["protocol"]
+        protocol.eval_msg(can_id, data, nr_of_bytes)
+
 
 def rcv_listen(bus, can_ids=None, timeout=0.01, extended=False, collect_time=0):
     """Thread which collects messages in received_msgs
@@ -183,17 +204,19 @@ def rcv_listen(bus, can_ids=None, timeout=0.01, extended=False, collect_time=0):
         Die neuen can_masks müssten noch irgendwie mit in den Filter..
         filters=[ {"can_id": can_id,"can_mask": can_id, "extended": extended} for can_id in can_ids]
         bus.set_filters( filters)
-      """
+    """
     # initialize protocols
     # prepare the options for uds_listener
     options = isotp_listener.IsoTpOptions()
-    options.target_address = 0x7E1 # uds answer address
-    options.source_address = options.target_address | 8 # listen on can ID 
-    options.bs=10 # The block size sent in the flow control message. Indicates the number of consecutive frame a sender can send before the socket sends a new flow control. A block size of 0 means that no additional flow control message will be sent (block size of infinity)
-    options.stmin =5 # time to wait
-    options.send_frame = msg_send # assign callback function to allow isotp_listener to send messages
-    options.uds_handler = uds_handler # assign callback function to allow isotp_listener to announce incoming requests
-    configure_challenge_response_protocol("isotp",options)
+    options.target_address = 0x7E1  # uds answer address
+    options.source_address = options.target_address | 8  # listen on can ID
+    options.bs = 10  # The block size sent in the flow control message. Indicates the number of consecutive frame a sender can send before the socket sends a new flow control. A block size of 0 means that no additional flow control message will be sent (block size of infinity)
+    options.stmin = 5  # time to wait
+    options.send_frame = (
+        msg_send  # assign callback function to allow isotp_listener to send messages
+    )
+    options.uds_handler = uds_handler  # assign callback function to allow isotp_listener to announce incoming requests
+    configure_challenge_response_protocol("isotp", options)
     global error_precentage_rate
     print("start receive thread")
     while not stop_event.is_set():
@@ -212,7 +235,7 @@ def rcv_listen(bus, can_ids=None, timeout=0.01, extended=False, collect_time=0):
             error_count += 1
         else:
             rx_count += 1
-        forward_to_protocols(message.arbitration_id,message.data,message.dlc)
+        forward_to_protocols(message.arbitration_id, message.data, message.dlc)
         this_time = time.time()
         if collect_time:
             max_age = this_time - collect_time
@@ -260,11 +283,11 @@ def rcv_collect(can_id: int, can_mask: int = 0, age_ms: int = 0):
             if can_id != id:
                 continue
         else:
-            if isinstance(can_mask,list):
-                no_match=True
+            if isinstance(can_mask, list):
+                no_match = True
                 for c_mask in can_mask:
                     if id & can_mask == can_id:
-                        no_match=False
+                        no_match = False
                         break
                 if no_match:
                     continue
